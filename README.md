@@ -17,23 +17,52 @@ A focused VS Code extension that presents your recently opened and edited files 
   - **Older**: Neutral secondary color
 - ⚡ **Local-First & Lightweight**: Stores history directly in `workspaceState`, zero network calls or external dependencies.
 
+## Visual Styles: Native File Icons vs Color Dot Icons
+
+This extension provides two distinct visual presentations:
+
+1. **Native File Icons (Default)**:
+   Retains your VS Code File Icon Theme (e.g., Seti, Material), while recency and timing are displayed via native `FileDecoration` descriptions (`#Rank • Relative Time`, e.g., `#1 • just now`).
+2. **Color Dot Icons (`showColorDotIcon`)**:
+   Replaces file icons in the treeview with clean, smooth SVG color dots. The colors use piecewise linear interpolation and automatically adapt between **2026 Dark** (soft pastels) and **2026 Light** (high-contrast jewels).
+
+### How to Enable Color Dot Icons?
+
+- **Option 1: Via VS Code Settings GUI**
+  1. Open Settings (`Ctrl + ,` or `Cmd + ,` on macOS).
+  2. Search for: `Colorful Recent Files: Show Color Dot Icon`.
+  3. Check the box for "**Show Color Dot Icon**".
+
+- **Option 2: Via `settings.json`**
+  Add the following entry to your `settings.json`:
+  ```json
+  "codeColorfulRecentFiles.showColorDotIcon": true
+  ```
+
+---
+
 ## Extension Settings
 
-This extension contributes the following settings:
+You can configure the extension using the following settings:
 
-* `codeColorfulRecentFiles.groupByDirectory`: Group recent files by parent directory in the treeview (default: `false`).
-* `codeColorfulRecentFiles.colorScheme`: Color scheme, supports continuous rank spectrum (`rankSpectrum`) or time buckets (`timeBucket`, default: `rankSpectrum`).
-* `codeColorfulRecentFiles.showColorDotIcon`: Render smooth colored dot icon instead of native file icon (default: `false`).
-* `codeColorfulRecentFiles.styleNativeExplorer`: Apply decorations to native VS Code Explorer as well (default: `false`).
-* `codeColorfulRecentFiles.maxRecentFiles`: Maximum number of files to keep in history (default: `50`).
-* `codeColorfulRecentFiles.highlightMode`: Reference metric for color calculation (`lastAccess` or `lastModified`, default: `lastAccess`).
+| Setting | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `codeColorfulRecentFiles.showColorDotIcon` | `boolean` | `false` | **Color Dot Switch**: Render smooth colored dot icons instead of default file icons. |
+| `codeColorfulRecentFiles.groupByDirectory` | `boolean` | `false` | **Directory Grouping**: Group recent files under their parent directory hierarchy. |
+| `codeColorfulRecentFiles.colorScheme` | `string` | `"rankSpectrum"` | **Color Scheme**: `"rankSpectrum"` (smooth rainbow spectrum) or `"timeBucket"` (time step intervals). |
+| `codeColorfulRecentFiles.styleNativeExplorer` | `boolean` | `false` | **Native Explorer Styling**: Apply colorful decorations to the native VS Code Explorer as well (default false for clean separation). |
+| `codeColorfulRecentFiles.maxRecentFiles` | `number` | `50` | **History Limit**: Maximum number of recent files to retain (5 ~ 500). |
+| `codeColorfulRecentFiles.highlightMode` | `string` | `"lastAccess"` | **Time Metric**: `"lastAccess"` (open/focus) or `"lastModified"` (edit/save). |
+
+---
 
 ## Color Customization & Theme Patching
 
-This extension contributes 6 customizable heat color tokens (`colorfulRecentFiles.heat1` ~ `heat6`). By default, they automatically adapt to your theme (calibrated with 2026 Dark and 2026 Light palettes).
+This extension contributes 6 customizable heat color tokens (`colorfulRecentFiles.heat1` ~ `heat6`), mapped by default to standard `charts.*` colors and calibrated against official 2026 Dark and 2026 Light standards.
 
-You can easily override these tokens with custom Hex RGB colors in your `settings.json`:
+If you are using a third-party theme with suboptimal contrast, you can override these tokens directly with raw Hex RGB values in `settings.json`:
 
+### 🌙 Dark Theme Recommended Patch (2026 Dark Calibrated)
 ```json
 "workbench.colorCustomizations": {
   "colorfulRecentFiles.heat1": "#EF8773",
@@ -45,7 +74,17 @@ You can easily override these tokens with custom Hex RGB colors in your `setting
 }
 ```
 
-(Light theme recommended: `heat1`: `#AD0707`, `heat2`: `#D18616`, `heat3`: `#667309`, `heat4`: `#388A34`, `heat5`: `#1A5CFF`, `heat6`: `#652D90`)
+### ☀️ Light Theme Recommended Patch (2026 Light High Contrast)
+```json
+"workbench.colorCustomizations": {
+  "colorfulRecentFiles.heat1": "#AD0707",
+  "colorfulRecentFiles.heat2": "#D18616",
+  "colorfulRecentFiles.heat3": "#667309",
+  "colorfulRecentFiles.heat4": "#388A34",
+  "colorfulRecentFiles.heat5": "#1A5CFF",
+  "colorfulRecentFiles.heat6": "#652D90"
+}
+```
 
 ## Commands
 
