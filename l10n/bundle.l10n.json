@@ -1,0 +1,12 @@
+{
+  "confirm.clearHistory": "Are you sure you want to clear all recent files history?",
+  "action.clear": "Clear",
+  "action.cancel": "Cancel",
+  "info.historyCleared": "Recent files history has been cleared.",
+  "time.justNow": "just now",
+  "time.minutesAgo": "{0}m ago",
+  "time.hoursAgo": "{0}h ago",
+  "time.daysAgo": "{0}d ago",
+  "tooltip.edited": "Last edited: {0}",
+  "tooltip.accessed": "Last accessed: {0}"
+}

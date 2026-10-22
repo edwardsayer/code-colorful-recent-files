@@ -1,0 +1,18 @@
+{
+  "extension.displayName": "Colorful Recent Files",
+  "extension.description": "Treeview of recently opened and edited files with directory grouping and time-based colorful decorations.",
+  "container.title": "Recent Files",
+  "view.recentView.name": "Recent Files",
+  "category.recentFiles": "Recent Files",
+  "command.refresh.title": "Refresh",
+  "command.toggleGroupByDirectory.title": "Group by Directory",
+  "command.clearHistory.title": "Clear History",
+  "command.removeItem.title": "Remove from History",
+  "command.openFile.title": "Open File",
+  "configuration.title": "Colorful Recent Files",
+  "configuration.groupByDirectory.description": "Group recent files by their parent directories in the treeview.",
+  "configuration.maxRecentFiles.description": "Maximum number of recent files to track in the workspace.",
+  "configuration.highlightMode.description": "Base metric for time decoration: last access time (open/switch) or last modified time (edit/save).",
+  "capabilities.untrustedWorkspaces.description": "Works locally without modifying disk or running untrusted code.",
+  "capabilities.virtualWorkspaces.description": "Virtual workspaces are not currently supported."
+}

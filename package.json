@@ -1,0 +1,154 @@
+{
+  "name": "code-colorful-recent-files",
+  "displayName": "%extension.displayName%",
+  "description": "%extension.description%",
+  "version": "0.1.0",
+  "publisher": "edwardsayer",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "recent files",
+    "history",
+    "mru",
+    "explorer",
+    "decoration"
+  ],
+  "main": "./dist/extension.js",
+  "l10n": "./l10n",
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": true,
+      "description": "%capabilities.untrustedWorkspaces.description%"
+    },
+    "virtualWorkspaces": {
+      "supported": false,
+      "description": "%capabilities.virtualWorkspaces.description%"
+    }
+  },
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "code-colorful-recent-files",
+          "title": "%container.title%",
+          "icon": "assets/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "code-colorful-recent-files": [
+        {
+          "id": "codeColorfulRecentFiles.recentView",
+          "name": "%view.recentView.name%",
+          "contextualTitle": "%container.title%"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "codeColorfulRecentFiles.refresh",
+        "title": "%command.refresh.title%",
+        "icon": "$(refresh)",
+        "category": "%category.recentFiles%"
+      },
+      {
+        "command": "codeColorfulRecentFiles.toggleGroupByDirectory",
+        "title": "%command.toggleGroupByDirectory.title%",
+        "category": "%category.recentFiles%"
+      },
+      {
+        "command": "codeColorfulRecentFiles.clearHistory",
+        "title": "%command.clearHistory.title%",
+        "icon": "$(clear-all)",
+        "category": "%category.recentFiles%"
+      },
+      {
+        "command": "codeColorfulRecentFiles.removeItem",
+        "title": "%command.removeItem.title%",
+        "icon": "$(close)",
+        "category": "%category.recentFiles%"
+      },
+      {
+        "command": "codeColorfulRecentFiles.openFile",
+        "title": "%command.openFile.title%",
+        "category": "%category.recentFiles%"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "codeColorfulRecentFiles.refresh",
+          "when": "view == codeColorfulRecentFiles.recentView",
+          "group": "navigation"
+        },
+        {
+          "command": "codeColorfulRecentFiles.toggleGroupByDirectory",
+          "when": "view == codeColorfulRecentFiles.recentView",
+          "group": "1_options@1",
+          "toggled": "config.codeColorfulRecentFiles.groupByDirectory"
+        },
+        {
+          "command": "codeColorfulRecentFiles.clearHistory",
+          "when": "view == codeColorfulRecentFiles.recentView",
+          "group": "2_manage@1"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "codeColorfulRecentFiles.removeItem",
+          "when": "view == codeColorfulRecentFiles.recentView && viewItem == fileItem",
+          "group": "inline"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "%configuration.title%",
+      "properties": {
+        "codeColorfulRecentFiles.groupByDirectory": {
+          "type": "boolean",
+          "default": false,
+          "description": "%configuration.groupByDirectory.description%"
+        },
+        "codeColorfulRecentFiles.maxRecentFiles": {
+          "type": "integer",
+          "default": 50,
+          "minimum": 5,
+          "maximum": 500,
+          "description": "%configuration.maxRecentFiles.description%"
+        },
+        "codeColorfulRecentFiles.highlightMode": {
+          "type": "string",
+          "enum": [
+            "lastAccess",
+            "lastModified"
+          ],
+          "default": "lastAccess",
+          "description": "%configuration.highlightMode.description%"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "node esbuild.mjs",
+    "watch": "node esbuild.mjs --watch",
+    "typecheck": "tsc --noEmit",
+    "test:unit": "vitest run",
+    "test:unit:watch": "vitest",
+    "package:vsix": "node esbuild.mjs --production && vsce package --no-rewrite-relative-links --allow-missing-repository",
+    "check:project": "node scripts/check-project.mjs",
+    "check": "npm run typecheck && npm run test:unit && npm run build && npm run check:project"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^3.2.1",
+    "esbuild": "^0.24.0",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

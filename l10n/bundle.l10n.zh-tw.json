@@ -1,0 +1,12 @@
+{
+  "confirm.clearHistory": "您確定要清除所有最近檔案紀錄嗎？",
+  "action.clear": "清除",
+  "action.cancel": "取消",
+  "info.historyCleared": "最近檔案歷史紀錄已清空。",
+  "time.justNow": "剛剛",
+  "time.minutesAgo": "{0} 分鐘前",
+  "time.hoursAgo": "{0} 小時前",
+  "time.daysAgo": "{0} 天前",
+  "tooltip.edited": "最後編輯於：{0}",
+  "tooltip.accessed": "最後存取於：{0}"
+}
