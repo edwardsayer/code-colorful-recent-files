@@ -75,7 +75,10 @@ export class RecentTreeDataProvider implements vscode.TreeDataProvider<RecentTre
         if (rankInfo) {
           const { rank, total } = rankInfo;
           const t = total > 1 ? rank / (total - 1) : 0;
-          const colorHex = interpolateRainbow(t);
+          const isLight =
+            vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Light ||
+            vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.HighContrastLight;
+          const colorHex = interpolateRainbow(t, isLight);
           item.iconPath = vscode.Uri.parse(createColorDotSvgDataUri(colorHex));
         }
       } else {

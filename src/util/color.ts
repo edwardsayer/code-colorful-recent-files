@@ -8,88 +8,89 @@ export interface RgbColor {
   b: number;
 }
 
-/** 將 HSL (h: 0-360, s: 0-1, l: 0-1) 轉換為 RGB (0-255) */
-export function hslToRgb(h: number, s: number, l: number): RgbColor {
-  const c = (1 - Math.abs(2 * l - 1)) * s;
-  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
-  const m = l - c / 2;
-  let r1 = 0;
-  let g1 = 0;
-  let b1 = 0;
+/** 2026 Dark 官方舒適色票 (深色底) */
+export const PALETTE_2026_DARK = [
+  '#EF8773', // charts.red (珊瑚粉紅)
+  '#CD861A', // charts.orange (焦糖琥珀橙)
+  '#E0B97F', // charts.yellow (香檳金黃)
+  '#86CF86', // charts.green (薄荷翠綠)
+  '#57A3F8', // charts.blue (天青湛藍)
+  '#AD80D7', // charts.purple (薰衣草紫)
+] as const;
 
-  if (h >= 0 && h < 60) {
-    r1 = c;
-    g1 = x;
-    b1 = 0;
-  } else if (h >= 60 && h < 120) {
-    r1 = x;
-    g1 = c;
-    b1 = 0;
-  } else if (h >= 120 && h < 180) {
-    r1 = 0;
-    g1 = c;
-    b1 = x;
-  } else if (h >= 180 && h < 240) {
-    r1 = 0;
-    g1 = x;
-    b1 = c;
-  } else if (h >= 240 && h < 300) {
-    r1 = x;
-    g1 = 0;
-    b1 = c;
-  } else if (h >= 300 && h < 360) {
-    r1 = c;
-    g1 = 0;
-    b1 = x;
-  }
+/** 2026 Light 官方舒適色票 (亮色底高對比) */
+export const PALETTE_2026_LIGHT = [
+  '#AD0707', // charts.red (沉穩寶石紅)
+  '#D18616', // charts.orange (深焦糖橙)
+  '#667309', // charts.yellow (橄欖深金黃，防反光隱形)
+  '#388A34', // charts.green (深森林翠綠)
+  '#1A5CFF', // charts.blue (皇室蔚藍)
+  '#652D90', // charts.purple (深葡萄濃紫)
+] as const;
 
+/** 十六進位色碼轉 RGB */
+export function hexToRgb(hex: string): RgbColor {
+  const clean = hex.startsWith('#') ? hex.slice(1) : hex;
+  const num = parseInt(clean, 16);
   return {
-    r: Math.round((r1 + m) * 255),
-    g: Math.round((g1 + m) * 255),
-    b: Math.round((b1 + m) * 255),
+    r: (num >> 16) & 255,
+    g: (num >> 8) & 255,
+    b: num & 255,
   };
 }
 
 /** 將 RGB 轉為十六進位色碼 #RRGGBB */
 export function rgbToHex(rgb: RgbColor): string {
-  const toHex = (n: number) => n.toString(16).padStart(2, '0');
+  const toHex = (n: number) => Math.round(Math.max(0, Math.min(255, n))).toString(16).padStart(2, '0');
   return `#${toHex(rgb.r)}${toHex(rgb.g)}${toHex(rgb.b)}`;
 }
 
 /**
- * 彩虹圖譜漸層運算 (具備人眼感知亮度補償)：
- * t = 0.0 (最新) -> 紅 (Hue 0)
- * 過渡：紅 -> 橙 -> 黃 -> 綠 -> 青 -> 藍 -> 紫
- * t = 1.0 (最舊) -> 紫 (Hue 280)
+ * 對給定色票進行多點平滑線性插值 (Piecewise Linear Interpolation)
+ * t: 0.0 (首色) ~ 1.0 (末色)
  */
-export function interpolateRainbow(t: number): string {
+export function interpolatePalette(palette: readonly string[], t: number): string {
+  if (palette.length === 0) return '#000000';
+  if (palette.length === 1) return palette[0];
+
   const clamped = Math.max(0, Math.min(1, t));
-  const hue = clamped * 280;
+  const segment = (palette.length - 1) * clamped;
+  const index = Math.min(palette.length - 2, Math.floor(segment));
+  const factor = segment - index;
 
-  // 人眼對藍光感知靈敏度較低，在藍紫光段 (180° ~ 280°) 動態提升明度，
-  // 消除在深色主題背景下發暗的視覺落差
-  let lightness = 0.52;
-  if (hue >= 180) {
-    const ratio = (hue - 180) / 100;
-    lightness = 0.52 + ratio * 0.14;
-  }
+  const c1 = hexToRgb(palette[index]);
+  const c2 = hexToRgb(palette[index + 1]);
 
-  const rgb = hslToRgb(hue, 0.85, lightness);
-  return rgbToHex(rgb);
+  return rgbToHex({
+    r: c1.r + (c2.r - c1.r) * factor,
+    g: c1.g + (c2.g - c1.g) * factor,
+    b: c1.b + (c2.b - c1.b) * factor,
+  });
 }
 
 /**
- * 依順位比例取得 VS Code 內建 ThemeColor id (經典 charts.* 光譜)
- * 供 FileDecorationProvider 使用 (VS Code 限制 color 必須為 ThemeColor)
+ * 彩虹圖譜漸層運算：
+ * 支援深色模式 (2026 Dark) 與亮色模式 (2026 Light) 自適應色票
+ * t = 0.0 (最新) -> 紅
+ * t = 1.0 (最舊) -> 紫
+ */
+export function interpolateRainbow(t: number, isLight = false): string {
+  const palette = isLight ? PALETTE_2026_LIGHT : PALETTE_2026_DARK;
+  return interpolatePalette(palette, t);
+}
+
+/**
+ * 依順位比例取得 VS Code ThemeColor id
+ * 使用套件專屬的 colorfulRecentFiles.heat1 ~ heat6 (在 package.json 預設對齊 charts.* 系列)
  */
 export function getSpectrumThemeColorId(t: number): string {
   const clamped = Math.max(0, Math.min(1, t));
-  if (clamped < 0.17) return 'charts.red';
-  if (clamped < 0.34) return 'charts.orange';
-  if (clamped < 0.51) return 'charts.yellow';
-  if (clamped < 0.68) return 'charts.green';
-  if (clamped < 0.85) return 'charts.blue';
-  return 'charts.purple';
+  if (clamped < 0.17) return 'colorfulRecentFiles.heat1';
+  if (clamped < 0.34) return 'colorfulRecentFiles.heat2';
+  if (clamped < 0.51) return 'colorfulRecentFiles.heat3';
+  if (clamped < 0.68) return 'colorfulRecentFiles.heat4';
+  if (clamped < 0.85) return 'colorfulRecentFiles.heat5';
+  return 'colorfulRecentFiles.heat6';
 }
 
 /**

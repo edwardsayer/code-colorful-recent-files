@@ -22,8 +22,30 @@
 本擴充套件提供下列設定：
 
 * `codeColorfulRecentFiles.groupByDirectory`：是否在樹狀檢視中依上層目錄分組（預設：`false`）。
+* `codeColorfulRecentFiles.colorScheme`：配色模式，支援連續彩虹順位色譜 `rankSpectrum` 或時間區間階梯 `timeBucket`（預設：`rankSpectrum`）。
+* `codeColorfulRecentFiles.showColorDotIcon`：是否在樹狀檢視中改以色彩小圓點取代檔案圖示（預設：`false`，維持顯示原生檔案圖示）。
+* `codeColorfulRecentFiles.styleNativeExplorer`：是否將色彩裝飾與右方標注同時套用至 VS Code 原生檔案總管（預設：`false`）。
 * `codeColorfulRecentFiles.maxRecentFiles`：工作區內保留的最大最近檔案筆數（預設：`50`）。
 * `codeColorfulRecentFiles.highlightMode`：時間熱度計算基準（`lastAccess` 或 `lastModified`，預設：`lastAccess`）。
+
+## 自訂色彩與跨主題 Patch (Color Customization)
+
+本套件原生註冊 6 個熱度色彩 Token（`colorfulRecentFiles.heat1` ~ `heat6`）。預設會自動依據您的主題在深色底（2026 Dark 舒適色）與淺色底（2026 Light 高對比色）之間自適應。
+
+若您使用的是第三方主題，且希望手動覆寫為最舒服的色彩，可直接在 VS Code 的 `settings.json` 中自訂真實 RGB Hex：
+
+```json
+"workbench.colorCustomizations": {
+  "colorfulRecentFiles.heat1": "#EF8773",
+  "colorfulRecentFiles.heat2": "#CD861A",
+  "colorfulRecentFiles.heat3": "#E0B97F",
+  "colorfulRecentFiles.heat4": "#86CF86",
+  "colorfulRecentFiles.heat5": "#57A3F8",
+  "colorfulRecentFiles.heat6": "#AD80D7"
+}
+```
+
+（亮色主題建議值：`heat1`: `#AD0707`, `heat2`: `#D18616`, `heat3`: `#667309`, `heat4`: `#388A34`, `heat5`: `#1A5CFF`, `heat6`: `#652D90`）
 
 ## 貢獻指令
 

@@ -52,6 +52,14 @@ export function activate(context: vscode.ExtensionContext): void {
     })
   );
 
+  // 監聽顏色主題變更，確保切換深色/淺色主題時小圓點與標記能即時適應
+  context.subscriptions.push(
+    vscode.window.onDidChangeActiveColorTheme(() => {
+      treeDataProvider.refresh();
+      decorationProvider.fireChange();
+    })
+  );
+
   // 註冊指令：重新整理
   context.subscriptions.push(
     vscode.commands.registerCommand('codeColorfulRecentFiles.refresh', async () => {

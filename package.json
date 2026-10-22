@@ -35,6 +35,62 @@
     }
   },
   "contributes": {
+    "colors": [
+      {
+        "id": "colorfulRecentFiles.heat1",
+        "description": "%colorfulRecentFiles.color.heat1%",
+        "defaults": {
+          "dark": "charts.red",
+          "light": "charts.red",
+          "highContrast": "charts.red"
+        }
+      },
+      {
+        "id": "colorfulRecentFiles.heat2",
+        "description": "%colorfulRecentFiles.color.heat2%",
+        "defaults": {
+          "dark": "charts.orange",
+          "light": "charts.orange",
+          "highContrast": "charts.orange"
+        }
+      },
+      {
+        "id": "colorfulRecentFiles.heat3",
+        "description": "%colorfulRecentFiles.color.heat3%",
+        "defaults": {
+          "dark": "charts.yellow",
+          "light": "charts.yellow",
+          "highContrast": "charts.yellow"
+        }
+      },
+      {
+        "id": "colorfulRecentFiles.heat4",
+        "description": "%colorfulRecentFiles.color.heat4%",
+        "defaults": {
+          "dark": "charts.green",
+          "light": "charts.green",
+          "highContrast": "charts.green"
+        }
+      },
+      {
+        "id": "colorfulRecentFiles.heat5",
+        "description": "%colorfulRecentFiles.color.heat5%",
+        "defaults": {
+          "dark": "charts.blue",
+          "light": "charts.blue",
+          "highContrast": "charts.blue"
+        }
+      },
+      {
+        "id": "colorfulRecentFiles.heat6",
+        "description": "%colorfulRecentFiles.color.heat6%",
+        "defaults": {
+          "dark": "charts.purple",
+          "light": "charts.purple",
+          "highContrast": "charts.purple"
+        }
+      }
+    ],
     "viewsContainers": {
       "activitybar": [
         {

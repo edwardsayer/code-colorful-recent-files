@@ -18,5 +18,11 @@
   "configuration.maxRecentFiles.description": "Maximum number of recent files to track in the workspace.",
   "configuration.highlightMode.description": "Base metric for time decoration: last access time (open/switch) or last modified time (edit/save).",
   "capabilities.untrustedWorkspaces.description": "Works locally without modifying disk or running untrusted code.",
-  "capabilities.virtualWorkspaces.description": "Virtual workspaces are not currently supported."
+  "capabilities.virtualWorkspaces.description": "Virtual workspaces are not currently supported.",
+  "colorfulRecentFiles.color.heat1": "Recent files heat rank 1 (newest, default charts.red)",
+  "colorfulRecentFiles.color.heat2": "Recent files heat rank 2 (default charts.orange)",
+  "colorfulRecentFiles.color.heat3": "Recent files heat rank 3 (default charts.yellow)",
+  "colorfulRecentFiles.color.heat4": "Recent files heat rank 4 (default charts.green)",
+  "colorfulRecentFiles.color.heat5": "Recent files heat rank 5 (default charts.blue)",
+  "colorfulRecentFiles.color.heat6": "Recent files heat rank 6 (oldest, default charts.purple)"
 }
