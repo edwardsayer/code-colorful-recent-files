@@ -79,19 +79,17 @@ export function interpolateRainbow(t: number): string {
 }
 
 /**
- * 依順位比例取得明亮、高對比的 VS Code 內建 ThemeColor id。
- * 徹底解決部分主題中 charts.orange 偏向暗泥土色/暗棕色的問題，
- * 採用高明度的 gitDecoration.modifiedResourceForeground 與 terminal.ansiYellow，
- * 確保 #3, #4 與全光譜段在任何主題皆無比清晰亮麗。
+ * 依順位比例取得 VS Code 內建 ThemeColor id (經典 charts.* 光譜)
+ * 供 FileDecorationProvider 使用 (VS Code 限制 color 必須為 ThemeColor)
  */
 export function getSpectrumThemeColorId(t: number): string {
   const clamped = Math.max(0, Math.min(1, t));
   if (clamped < 0.17) return 'charts.red';
-  if (clamped < 0.34) return 'gitDecoration.modifiedResourceForeground'; // 亮麗琥珀金橙，徹底取代暗泥土色的 charts.orange
-  if (clamped < 0.51) return 'terminal.ansiYellow';                     // 鮮明亮金黃，確保不發暗
-  if (clamped < 0.68) return 'charts.green';                           // 清爽翠綠
-  if (clamped < 0.85) return 'terminal.ansiCyan';                       // 亮天藍
-  return 'terminal.ansiMagenta';                                        // 亮粉紫
+  if (clamped < 0.34) return 'charts.orange';
+  if (clamped < 0.51) return 'charts.yellow';
+  if (clamped < 0.68) return 'charts.green';
+  if (clamped < 0.85) return 'charts.blue';
+  return 'charts.purple';
 }
 
 /**

@@ -47,13 +47,13 @@ describe('color utility', () => {
     expect(interpolateRainbow(1.5)).toBe(endColor);
   });
 
-  it('maps rank ratio to ThemeColor ids with high-contrast luminance', () => {
+  it('maps rank ratio to ThemeColor ids with charts spectrum', () => {
     expect(getSpectrumThemeColorId(0.05)).toBe('charts.red');
-    expect(getSpectrumThemeColorId(0.25)).toBe('gitDecoration.modifiedResourceForeground');
-    expect(getSpectrumThemeColorId(0.40)).toBe('terminal.ansiYellow');
+    expect(getSpectrumThemeColorId(0.25)).toBe('charts.orange');
+    expect(getSpectrumThemeColorId(0.40)).toBe('charts.yellow');
     expect(getSpectrumThemeColorId(0.60)).toBe('charts.green');
-    expect(getSpectrumThemeColorId(0.75)).toBe('terminal.ansiCyan');
-    expect(getSpectrumThemeColorId(0.95)).toBe('terminal.ansiMagenta');
+    expect(getSpectrumThemeColorId(0.75)).toBe('charts.blue');
+    expect(getSpectrumThemeColorId(0.95)).toBe('charts.purple');
   });
 
   it('creates svg data uri with the specified color', () => {
