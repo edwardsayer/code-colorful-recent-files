@@ -20,6 +20,9 @@
     "rainbow"
   ],
   "main": "./dist/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "l10n": "./l10n",
   "capabilities": {
     "untrustedWorkspaces": {
