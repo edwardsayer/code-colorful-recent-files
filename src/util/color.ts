@@ -64,15 +64,14 @@ export function rgbToHex(rgb: RgbColor): string {
  */
 export function interpolateRainbow(t: number): string {
   const clamped = Math.max(0, Math.min(1, t));
-  // Hue 從 0 度 (紅) 平滑過渡到 280 度 (紫)
   const hue = clamped * 280;
 
   // 人眼對藍光感知靈敏度較低，在藍紫光段 (180° ~ 280°) 動態提升明度，
-  // 消除 #3, #4 在深色主題背景下發暗的視覺落差
+  // 消除在深色主題背景下發暗的視覺落差
   let lightness = 0.52;
   if (hue >= 180) {
-    const ratio = (hue - 180) / 100; // 0 ~ 1
-    lightness = 0.52 + ratio * 0.14; // 最高補償至 0.66，保持清晰明亮
+    const ratio = (hue - 180) / 100;
+    lightness = 0.52 + ratio * 0.14;
   }
 
   const rgb = hslToRgb(hue, 0.85, lightness);
@@ -81,17 +80,18 @@ export function interpolateRainbow(t: number): string {
 
 /**
  * 依順位比例取得明亮、高對比的 VS Code 內建 ThemeColor id。
- * 避免使用深色主題下極暗的 charts.blue 與 charts.purple，
- * 改採清亮鮮明的 terminal.ansiCyan 與 terminal.ansiMagenta，確保文字全光譜段清晰可讀。
+ * 徹底解決部分主題中 charts.orange 偏向暗泥土色/暗棕色的問題，
+ * 採用高明度的 gitDecoration.modifiedResourceForeground 與 terminal.ansiYellow，
+ * 確保 #3, #4 與全光譜段在任何主題皆無比清晰亮麗。
  */
 export function getSpectrumThemeColorId(t: number): string {
   const clamped = Math.max(0, Math.min(1, t));
   if (clamped < 0.17) return 'charts.red';
-  if (clamped < 0.34) return 'charts.orange';
-  if (clamped < 0.51) return 'charts.yellow';
-  if (clamped < 0.68) return 'charts.green';
-  if (clamped < 0.85) return 'terminal.ansiCyan';    // 亮青/湖水天藍，徹底取代暗藍
-  return 'terminal.ansiMagenta';                     // 亮粉紫/洋紅，徹底取代暗紫
+  if (clamped < 0.34) return 'gitDecoration.modifiedResourceForeground'; // 亮麗琥珀金橙，徹底取代暗泥土色的 charts.orange
+  if (clamped < 0.51) return 'terminal.ansiYellow';                     // 鮮明亮金黃，確保不發暗
+  if (clamped < 0.68) return 'charts.green';                           // 清爽翠綠
+  if (clamped < 0.85) return 'terminal.ansiCyan';                       // 亮天藍
+  return 'terminal.ansiMagenta';                                        // 亮粉紫
 }
 
 /**
