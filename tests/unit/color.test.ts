@@ -50,13 +50,13 @@ describe('color utility', () => {
     expect(lightEnd).toBe('#652d90');
   });
 
-  it('maps rank ratio to ThemeColor ids with custom heat tokens', () => {
-    expect(getSpectrumThemeColorId(0.05)).toBe('colorfulRecentFiles.heat1');
-    expect(getSpectrumThemeColorId(0.25)).toBe('colorfulRecentFiles.heat2');
-    expect(getSpectrumThemeColorId(0.40)).toBe('colorfulRecentFiles.heat3');
-    expect(getSpectrumThemeColorId(0.60)).toBe('colorfulRecentFiles.heat4');
-    expect(getSpectrumThemeColorId(0.75)).toBe('colorfulRecentFiles.heat5');
-    expect(getSpectrumThemeColorId(0.95)).toBe('colorfulRecentFiles.heat6');
+  it('maps rank ratio to ThemeColor ids with charts spectrum', () => {
+    expect(getSpectrumThemeColorId(0.05)).toBe('charts.red');
+    expect(getSpectrumThemeColorId(0.25)).toBe('charts.orange');
+    expect(getSpectrumThemeColorId(0.40)).toBe('charts.yellow');
+    expect(getSpectrumThemeColorId(0.60)).toBe('charts.green');
+    expect(getSpectrumThemeColorId(0.75)).toBe('charts.blue');
+    expect(getSpectrumThemeColorId(0.95)).toBe('charts.purple');
   });
 
   it('creates svg data uri with the specified color', () => {

@@ -80,17 +80,17 @@ export function interpolateRainbow(t: number, isLight = false): string {
 }
 
 /**
- * 依順位比例取得 VS Code ThemeColor id
- * 使用套件專屬的 colorfulRecentFiles.heat1 ~ heat6 (在 package.json 預設對齊 charts.* 系列)
+ * 依順位比例取得 VS Code 內建 ThemeColor id (經典 charts.* 光譜)
+ * VS Code FileDecoration 系統嚴格要求必須使用 VS Code 核心內建 Token
  */
 export function getSpectrumThemeColorId(t: number): string {
   const clamped = Math.max(0, Math.min(1, t));
-  if (clamped < 0.17) return 'colorfulRecentFiles.heat1';
-  if (clamped < 0.34) return 'colorfulRecentFiles.heat2';
-  if (clamped < 0.51) return 'colorfulRecentFiles.heat3';
-  if (clamped < 0.68) return 'colorfulRecentFiles.heat4';
-  if (clamped < 0.85) return 'colorfulRecentFiles.heat5';
-  return 'colorfulRecentFiles.heat6';
+  if (clamped < 0.17) return 'charts.red';
+  if (clamped < 0.34) return 'charts.orange';
+  if (clamped < 0.51) return 'charts.yellow';
+  if (clamped < 0.68) return 'charts.green';
+  if (clamped < 0.85) return 'charts.blue';
+  return 'charts.purple';
 }
 
 /**
