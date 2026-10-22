@@ -6,13 +6,16 @@ export interface RecentFileRecord {
   lastModifiedTime: number; // 最後編輯或存檔的時間戳記 (毫秒)
 }
 
-/** 時間熱度等級 */
+/** 時間熱度等級 (時間階梯模式) */
 export enum HeatmapLevel {
   Fresh = 'fresh',     // < 15 分鐘 (綠色)
   Warm = 'warm',       // < 2 小時 (黃色)
   Day = 'day',         // < 24 小時 (橘色)
   Old = 'old',         // >= 24 小時 (無顏色/次要色)
 }
+
+/** 色彩標記配置模式 */
+export type ColorScheme = 'timeBucket' | 'rankSpectrum';
 
 /** 樹狀節點項目 */
 export type RecentTreeElement = RecentFolderElement | RecentFileElement;
@@ -35,4 +38,5 @@ export interface ExtensionConfig {
   groupByDirectory: boolean;
   maxRecentFiles: number;
   highlightMode: 'lastAccess' | 'lastModified';
+  colorScheme: ColorScheme;
 }

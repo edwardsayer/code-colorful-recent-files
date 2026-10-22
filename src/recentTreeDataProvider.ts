@@ -3,7 +3,9 @@ import * as vscode from 'vscode';
 import { getExtensionConfig } from './config';
 import { RecentFilesManager } from './recentFilesManager';
 import { RecentFileRecord, RecentFolderElement, RecentTreeElement } from './types';
-import { formatRelativeTime, getMetricTime } from './util/time';
+import { createColorDotSvgDataUri, interpolateRainbow } from './util/color';
+import { calculateHeatmapLevel, formatRelativeTime, getMetricTime } from './util/time';
+import { HeatmapLevel } from './types';
 
 export class RecentTreeDataProvider implements vscode.TreeDataProvider<RecentTreeElement> {
   private readonly _onDidChangeTreeData = new vscode.EventEmitter<RecentTreeElement | undefined | null | void>();
@@ -46,10 +48,52 @@ export class RecentTreeDataProvider implements vscode.TreeDataProvider<RecentTre
       relPath = path.dirname(uri.fsPath);
     }
 
-    if (config.groupByDirectory) {
-      item.description = timeStr;
+    // 圖示與色彩設定
+    if (config.colorScheme === 'rankSpectrum') {
+      const rankInfo = this.manager.getRecordRank(element.record.uri);
+      if (rankInfo) {
+        const { rank, total } = rankInfo;
+        const t = total > 1 ? rank / (total - 1) : 0;
+        // 運算漸變出來的精確彩虹 hex 色碼
+        const colorHex = interpolateRainbow(t);
+        const dataUriString = createColorDotSvgDataUri(colorHex);
+        item.iconPath = vscode.Uri.parse(dataUriString);
+
+        const rankTag = `#${rank + 1}`;
+        if (config.groupByDirectory) {
+          item.description = `${rankTag} • ${timeStr}`;
+        } else {
+          item.description = relPath ? `${rankTag} • ${relPath} • ${timeStr}` : `${rankTag} • ${timeStr}`;
+        }
+      } else {
+        item.description = timeStr;
+      }
     } else {
-      item.description = relPath ? `${relPath} • ${timeStr}` : timeStr;
+      // timeBucket 模式
+      const level = calculateHeatmapLevel(metricTime);
+      let dotColor: string | undefined;
+      switch (level) {
+        case HeatmapLevel.Fresh:
+          dotColor = '#10b981'; // 翠綠
+          break;
+        case HeatmapLevel.Warm:
+          dotColor = '#f59e0b'; // 金黃
+          break;
+        case HeatmapLevel.Day:
+          dotColor = '#f97316'; // 亮橘
+          break;
+        case HeatmapLevel.Old:
+        default:
+          dotColor = '#94a3b8'; // 灰藍
+          break;
+      }
+      item.iconPath = vscode.Uri.parse(createColorDotSvgDataUri(dotColor));
+
+      if (config.groupByDirectory) {
+        item.description = timeStr;
+      } else {
+        item.description = relPath ? `${relPath} • ${timeStr}` : timeStr;
+      }
     }
 
     item.command = {

@@ -16,7 +16,8 @@
     "history",
     "mru",
     "explorer",
-    "decoration"
+    "decoration",
+    "rainbow"
   ],
   "main": "./dist/extension.js",
   "l10n": "./l10n",
@@ -62,6 +63,11 @@
         "category": "%category.recentFiles%"
       },
       {
+        "command": "codeColorfulRecentFiles.toggleColorScheme",
+        "title": "%command.toggleColorScheme.title%",
+        "category": "%category.recentFiles%"
+      },
+      {
         "command": "codeColorfulRecentFiles.clearHistory",
         "title": "%command.clearHistory.title%",
         "icon": "$(clear-all)",
@@ -93,6 +99,12 @@
           "toggled": "config.codeColorfulRecentFiles.groupByDirectory"
         },
         {
+          "command": "codeColorfulRecentFiles.toggleColorScheme",
+          "when": "view == codeColorfulRecentFiles.recentView",
+          "group": "1_options@2",
+          "toggled": "config.codeColorfulRecentFiles.colorScheme == 'rankSpectrum'"
+        },
+        {
           "command": "codeColorfulRecentFiles.clearHistory",
           "when": "view == codeColorfulRecentFiles.recentView",
           "group": "2_manage@1"
@@ -113,6 +125,15 @@
           "type": "boolean",
           "default": false,
           "description": "%configuration.groupByDirectory.description%"
+        },
+        "codeColorfulRecentFiles.colorScheme": {
+          "type": "string",
+          "enum": [
+            "rankSpectrum",
+            "timeBucket"
+          ],
+          "default": "rankSpectrum",
+          "description": "%configuration.colorScheme.description%"
         },
         "codeColorfulRecentFiles.maxRecentFiles": {
           "type": "integer",

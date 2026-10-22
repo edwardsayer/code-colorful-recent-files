@@ -8,5 +8,6 @@
   "time.hoursAgo": "{0} 小時前",
   "time.daysAgo": "{0} 天前",
   "tooltip.edited": "最後編輯於：{0}",
-  "tooltip.accessed": "最後存取於：{0}"
+  "tooltip.accessed": "最後存取於：{0}",
+  "tooltip.rankSpectrum": "順位 #{0} / {1} • {2}"
 }

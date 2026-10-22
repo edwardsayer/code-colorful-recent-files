@@ -7,6 +7,7 @@ const STORAGE_KEY = 'codeColorfulRecentFiles.records';
 
 export class RecentFilesManager {
   private recordsMap = new Map<string, RecentFileRecord>();
+  private sortedCache: RecentFileRecord[] | null = null;
   private readonly _onDidChangeRecentFiles = new vscode.EventEmitter<void>();
   public readonly onDidChangeRecentFiles = this._onDidChangeRecentFiles.event;
 
@@ -27,6 +28,7 @@ export class RecentFilesManager {
         this.recordsMap.set(item.uri, item);
       }
     }
+    this.sortedCache = null;
   }
 
   private async saveToStorage(): Promise<void> {
@@ -35,17 +37,31 @@ export class RecentFilesManager {
   }
 
   public getRecords(): RecentFileRecord[] {
+    if (this.sortedCache) {
+      return this.sortedCache;
+    }
     const config = getExtensionConfig();
     const sorted = Array.from(this.recordsMap.values()).sort((a, b) => {
       const timeA = Math.max(a.lastOpenedTime, a.lastModifiedTime);
       const timeB = Math.max(b.lastOpenedTime, b.lastModifiedTime);
       return timeB - timeA;
     });
-    return sorted.slice(0, config.maxRecentFiles);
+    this.sortedCache = sorted.slice(0, config.maxRecentFiles);
+    return this.sortedCache;
   }
 
   public getRecordByUri(uriString: string): RecentFileRecord | undefined {
     return this.recordsMap.get(uriString);
+  }
+
+  /** 取得該 URI 在最新到最舊列表中的順位與總數 (0-indexed) */
+  public getRecordRank(uriString: string): { rank: number; total: number } | undefined {
+    const records = this.getRecords();
+    const index = records.findIndex((r) => r.uri === uriString);
+    if (index === -1) {
+      return undefined;
+    }
+    return { rank: index, total: records.length };
   }
 
   public async recordAccess(uri: vscode.Uri, kind: 'open' | 'modify'): Promise<void> {
@@ -74,6 +90,8 @@ export class RecentFilesManager {
       }
     }
 
+    this.sortedCache = null;
+
     // 限制最大筆數
     const config = getExtensionConfig();
     if (this.recordsMap.size > config.maxRecentFiles * 1.5) {
@@ -82,6 +100,7 @@ export class RecentFilesManager {
       for (const r of records) {
         this.recordsMap.set(r.uri, r);
       }
+      this.sortedCache = records;
     }
 
     await this.saveToStorage();
@@ -90,6 +109,7 @@ export class RecentFilesManager {
 
   public async removeRecord(uriStr: string): Promise<void> {
     if (this.recordsMap.delete(uriStr)) {
+      this.sortedCache = null;
       await this.saveToStorage();
       this._onDidChangeRecentFiles.fire();
     }
@@ -97,6 +117,7 @@ export class RecentFilesManager {
 
   public async clearAll(): Promise<void> {
     this.recordsMap.clear();
+    this.sortedCache = null;
     await this.saveToStorage();
     this._onDidChangeRecentFiles.fire();
     logInfo('Cleared all recent files history.');
@@ -113,6 +134,7 @@ export class RecentFilesManager {
       }
     }
     if (changed) {
+      this.sortedCache = null;
       await this.saveToStorage();
       this._onDidChangeRecentFiles.fire();
     }

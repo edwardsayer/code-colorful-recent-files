@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { getExtensionConfig, setGroupByDirectory } from './config';
+import { getExtensionConfig, setColorScheme, setGroupByDirectory } from './config';
 import { RecentFileDecorationProvider } from './recentFileDecorationProvider';
 import { RecentFilesManager } from './recentFilesManager';
 import { RecentTreeDataProvider } from './recentTreeDataProvider';
@@ -26,11 +26,12 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.window.registerFileDecorationProvider(decorationProvider)
   );
 
-  // 監聽 configuration 變更（如使用者修改 groupByDirectory 或 highlightMode）
+  // 監聽 configuration 變更（如使用者修改 groupByDirectory、highlightMode 或 colorScheme）
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration((e) => {
       if (e.affectsConfiguration('codeColorfulRecentFiles')) {
         treeDataProvider.refresh();
+        decorationProvider.fireChange();
       }
     })
   );
@@ -40,6 +41,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand('codeColorfulRecentFiles.refresh', async () => {
       await manager.pruneMissingFiles();
       treeDataProvider.refresh();
+      decorationProvider.fireChange();
     })
   );
 
@@ -50,6 +52,17 @@ export function activate(context: vscode.ExtensionContext): void {
       const nextValue = !config.groupByDirectory;
       await setGroupByDirectory(nextValue);
       treeDataProvider.refresh();
+    })
+  );
+
+  // 註冊指令：切換配色方案 (彩虹順位色譜 vs 時間階梯)
+  context.subscriptions.push(
+    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleColorScheme', async () => {
+      const config = getExtensionConfig();
+      const nextScheme = config.colorScheme === 'rankSpectrum' ? 'timeBucket' : 'rankSpectrum';
+      await setColorScheme(nextScheme);
+      treeDataProvider.refresh();
+      decorationProvider.fireChange();
     })
   );
 

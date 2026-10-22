@@ -8,5 +8,6 @@
   "time.hoursAgo": "{0}h ago",
   "time.daysAgo": "{0}d ago",
   "tooltip.edited": "Last edited: {0}",
-  "tooltip.accessed": "Last accessed: {0}"
+  "tooltip.accessed": "Last accessed: {0}",
+  "tooltip.rankSpectrum": "Rank #{0} of {1} • {2}"
 }
