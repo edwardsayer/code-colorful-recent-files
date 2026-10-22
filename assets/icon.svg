@@ -17,37 +17,35 @@
     </linearGradient>
   </defs>
 
-  <!-- Container Box with Rounded Corners -->
-  <rect x="4" y="4" width="120" height="120" rx="28" fill="url(#bgGrad)" stroke="#2d323b" stroke-width="2" />
+  <!-- Container Box with Rounded Corners (Narrow padding) -->
+  <rect x="2" y="2" width="124" height="124" rx="27" fill="url(#bgGrad)" stroke="#2d323b" stroke-width="1.5" />
 
-  <!-- Outer Rainbow Heat Halo (Clock Rim) -->
-  <circle cx="64" cy="64" r="46" fill="none" stroke="url(#rainbowGrad)" stroke-width="5" stroke-linecap="round" />
+  <!-- Outer Rainbow Heat Halo (Clock Rim enlarged to r=55) -->
+  <circle cx="64" cy="64" r="55" fill="none" stroke="url(#rainbowGrad)" stroke-width="6.5" stroke-linecap="round" />
 
-  <!-- Inner Clockface Body -->
-  <circle cx="64" cy="64" r="38" fill="#16181d" stroke="#373d49" stroke-width="2" />
+  <!-- Inner Clockface Body (r=47) -->
+  <circle cx="64" cy="64" r="47" fill="#0f1115" stroke="#252a33" stroke-width="1.5" />
 
-  <!-- Clockface Ticks at 12, 3, 6, 9 -->
-  <line x1="64" y1="31" x2="64" y2="39" stroke="#E0B97F" stroke-width="3.5" stroke-linecap="round" />
-  <line x1="97" y1="64" x2="89" y2="64" stroke="#86CF86" stroke-width="3.5" stroke-linecap="round" />
-  <line x1="64" y1="97" x2="64" y2="89" stroke="#57A3F8" stroke-width="3.5" stroke-linecap="round" />
-  <line x1="31" y1="64" x2="39" y2="64" stroke="#CD861A" stroke-width="3.5" stroke-linecap="round" />
+  <!-- Bold Clockface Ticks at 12, 3, 6, 9 -->
+  <line x1="64" y1="23" x2="64" y2="31" stroke="#E0B97F" stroke-width="3.5" stroke-linecap="round" />
+  <line x1="105" y1="64" x2="97" y2="64" stroke="#86CF86" stroke-width="3.5" stroke-linecap="round" />
+  <line x1="64" y1="105" x2="64" y2="97" stroke="#57A3F8" stroke-width="3.5" stroke-linecap="round" />
+  <line x1="23" y1="64" x2="31" y2="64" stroke="#CD861A" stroke-width="3.5" stroke-linecap="round" />
 
-  <!-- Minor Ticks (1, 2, 4, 5, 7, 8, 10, 11) -->
-  <circle cx="82.5" cy="33.3" r="2" fill="#64748b" />
-  <circle cx="94.7" cy="45.5" r="2" fill="#64748b" />
-  <circle cx="94.7" cy="82.5" r="2" fill="#64748b" />
-  <circle cx="82.5" cy="94.7" r="2" fill="#64748b" />
-  <circle cx="45.5" cy="94.7" r="2" fill="#64748b" />
-  <circle cx="33.3" cy="82.5" r="2" fill="#64748b" />
-  <circle cx="33.3" cy="45.5" r="2" fill="#64748b" />
-  <circle cx="45.5" cy="33.3" r="2" fill="#64748b" />
+  <!-- Minor Ticks -->
+  <circle cx="84" cy="29" r="1.8" fill="#64748b" />
+  <circle cx="99" cy="44" r="1.8" fill="#64748b" />
+  <circle cx="99" cy="84" r="1.8" fill="#64748b" />
+  <circle cx="84" cy="99" r="1.8" fill="#64748b" />
+  <circle cx="44" cy="99" r="1.8" fill="#64748b" />
+  <circle cx="29" cy="84" r="1.8" fill="#64748b" />
+  <circle cx="29" cy="44" r="1.8" fill="#64748b" />
+  <circle cx="44" cy="29" r="1.8" fill="#64748b" />
 
-  <!-- Clock Hands (10:10 Smiling Clockface) -->
-  <!-- Hour hand pointing to 10 o'clock -->
-  <line x1="64" y1="64" x2="47" y2="47" stroke="#f1f5f9" stroke-width="4.5" stroke-linecap="round" />
-  <!-- Minute hand pointing to 2 o'clock -->
-  <line x1="64" y1="64" x2="85" y2="40" stroke="#f1f5f9" stroke-width="4.5" stroke-linecap="round" />
+  <!-- Bold Clock Hands (10:10 Smiling Clockface) -->
+  <line x1="64" y1="64" x2="43" y2="43" stroke="#f8fafc" stroke-width="5" stroke-linecap="round" />
+  <line x1="64" y1="64" x2="89" y2="37" stroke="#f8fafc" stroke-width="4.5" stroke-linecap="round" />
 
   <!-- Center Pinion -->
-  <circle cx="64" cy="64" r="5" fill="#EF8773" stroke="#f1f5f9" stroke-width="2" />
+  <circle cx="64" cy="64" r="5.5" fill="#EF8773" stroke="#f8fafc" stroke-width="2" />
 </svg>
