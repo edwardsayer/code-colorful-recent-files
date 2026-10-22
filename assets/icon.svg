@@ -1,11 +1,53 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-  <!-- Clockface outline -->
-  <circle cx="12" cy="12" r="8.5" />
-  <!-- Clockface ticks at 12, 3, 6, 9 -->
-  <line x1="12" y1="5" x2="12" y2="6.5" />
-  <line x1="19" y1="12" x2="17.5" y2="12" />
-  <line x1="12" y1="19" x2="12" y2="17.5" />
-  <line x1="5" y1="12" x2="6.5" y2="12" />
-  <!-- Clock hands -->
-  <polyline points="12 7.5 12 12 15.5 14" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <!-- Background subtle gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1f232a" />
+      <stop offset="100%" stop-color="#121418" />
+    </linearGradient>
+
+    <!-- Colorful Recent Files Rainbow Spectrum Gradient -->
+    <linearGradient id="rainbowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#EF8773" />
+      <stop offset="20%" stop-color="#CD861A" />
+      <stop offset="40%" stop-color="#E0B97F" />
+      <stop offset="60%" stop-color="#86CF86" />
+      <stop offset="80%" stop-color="#57A3F8" />
+      <stop offset="100%" stop-color="#AD80D7" />
+    </linearGradient>
+  </defs>
+
+  <!-- Container Box with Rounded Corners -->
+  <rect x="4" y="4" width="120" height="120" rx="28" fill="url(#bgGrad)" stroke="#2d323b" stroke-width="2" />
+
+  <!-- Outer Rainbow Heat Halo (Clock Rim) -->
+  <circle cx="64" cy="64" r="46" fill="none" stroke="url(#rainbowGrad)" stroke-width="5" stroke-linecap="round" />
+
+  <!-- Inner Clockface Body -->
+  <circle cx="64" cy="64" r="38" fill="#16181d" stroke="#373d49" stroke-width="2" />
+
+  <!-- Clockface Ticks at 12, 3, 6, 9 -->
+  <line x1="64" y1="31" x2="64" y2="39" stroke="#E0B97F" stroke-width="3.5" stroke-linecap="round" />
+  <line x1="97" y1="64" x2="89" y2="64" stroke="#86CF86" stroke-width="3.5" stroke-linecap="round" />
+  <line x1="64" y1="97" x2="64" y2="89" stroke="#57A3F8" stroke-width="3.5" stroke-linecap="round" />
+  <line x1="31" y1="64" x2="39" y2="64" stroke="#CD861A" stroke-width="3.5" stroke-linecap="round" />
+
+  <!-- Minor Ticks (1, 2, 4, 5, 7, 8, 10, 11) -->
+  <circle cx="82.5" cy="33.3" r="2" fill="#64748b" />
+  <circle cx="94.7" cy="45.5" r="2" fill="#64748b" />
+  <circle cx="94.7" cy="82.5" r="2" fill="#64748b" />
+  <circle cx="82.5" cy="94.7" r="2" fill="#64748b" />
+  <circle cx="45.5" cy="94.7" r="2" fill="#64748b" />
+  <circle cx="33.3" cy="82.5" r="2" fill="#64748b" />
+  <circle cx="33.3" cy="45.5" r="2" fill="#64748b" />
+  <circle cx="45.5" cy="33.3" r="2" fill="#64748b" />
+
+  <!-- Clock Hands (10:10 Smiling Clockface) -->
+  <!-- Hour hand pointing to 10 o'clock -->
+  <line x1="64" y1="64" x2="47" y2="47" stroke="#f1f5f9" stroke-width="4.5" stroke-linecap="round" />
+  <!-- Minute hand pointing to 2 o'clock -->
+  <line x1="64" y1="64" x2="85" y2="40" stroke="#f1f5f9" stroke-width="4.5" stroke-linecap="round" />
+
+  <!-- Center Pinion -->
+  <circle cx="64" cy="64" r="5" fill="#EF8773" stroke="#f1f5f9" stroke-width="2" />
 </svg>

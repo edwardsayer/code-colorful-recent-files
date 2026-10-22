@@ -2,8 +2,9 @@
   "name": "code-colorful-recent-files",
   "displayName": "%extension.displayName%",
   "description": "%extension.description%",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "publisher": "edwardsayer",
+  "icon": "assets/icon.png",
   "license": "MIT",
   "engines": {
     "vscode": "^1.85.0"
@@ -96,7 +97,7 @@
         {
           "id": "code-colorful-recent-files",
           "title": "%container.title%",
-          "icon": "$(clock)"
+          "icon": "assets/clockface.svg"
         }
       ]
     },
