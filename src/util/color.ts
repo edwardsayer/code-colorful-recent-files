@@ -57,22 +57,32 @@ export function rgbToHex(rgb: RgbColor): string {
 }
 
 /**
- * 彩虹圖譜漸層運算：
+ * 彩虹圖譜漸層運算 (具備人眼感知亮度補償)：
  * t = 0.0 (最新) -> 紅 (Hue 0)
- * 過渡：紅 -> 橙 -> 黃 -> 綠 -> 藍 -> 靛 -> 紫
+ * 過渡：紅 -> 橙 -> 黃 -> 綠 -> 青 -> 藍 -> 紫
  * t = 1.0 (最舊) -> 紫 (Hue 280)
  */
 export function interpolateRainbow(t: number): string {
   const clamped = Math.max(0, Math.min(1, t));
   // Hue 從 0 度 (紅) 平滑過渡到 280 度 (紫)
   const hue = clamped * 280;
-  const rgb = hslToRgb(hue, 0.88, 0.52);
+
+  // 人眼對藍光感知靈敏度較低，在藍紫光段 (180° ~ 280°) 動態提升明度，
+  // 消除 #3, #4 在深色主題背景下發暗的視覺落差
+  let lightness = 0.52;
+  if (hue >= 180) {
+    const ratio = (hue - 180) / 100; // 0 ~ 1
+    lightness = 0.52 + ratio * 0.14; // 最高補償至 0.66，保持清晰明亮
+  }
+
+  const rgb = hslToRgb(hue, 0.85, lightness);
   return rgbToHex(rgb);
 }
 
 /**
- * 依順位比例取得最接近的 VS Code 內建 ThemeColor id
- * 供 FileDecorationProvider 使用 (VS Code 限制 color 必須為 ThemeColor)
+ * 依順位比例取得明亮、高對比的 VS Code 內建 ThemeColor id。
+ * 避免使用深色主題下極暗的 charts.blue 與 charts.purple，
+ * 改採清亮鮮明的 terminal.ansiCyan 與 terminal.ansiMagenta，確保文字全光譜段清晰可讀。
  */
 export function getSpectrumThemeColorId(t: number): string {
   const clamped = Math.max(0, Math.min(1, t));
@@ -80,13 +90,12 @@ export function getSpectrumThemeColorId(t: number): string {
   if (clamped < 0.34) return 'charts.orange';
   if (clamped < 0.51) return 'charts.yellow';
   if (clamped < 0.68) return 'charts.green';
-  if (clamped < 0.85) return 'charts.blue';
-  return 'charts.purple';
+  if (clamped < 0.85) return 'terminal.ansiCyan';    // 亮青/湖水天藍，徹底取代暗藍
+  return 'terminal.ansiMagenta';                     // 亮粉紫/洋紅，徹底取代暗紫
 }
 
 /**
  * 產生帶有指定顏色的圓點 SVG Data URI
- * 在 TreeView 中以平滑無階梯的自訂漸變色彩呈現圖示
  */
 export function createColorDotSvgDataUri(colorHex: string): string {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16"><circle cx="8" cy="8" r="5" fill="${colorHex}" /></svg>`;
