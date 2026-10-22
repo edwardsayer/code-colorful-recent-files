@@ -1,9 +1,15 @@
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { getExtensionConfig } from './config';
 import { RecentFileRecord } from './types';
-import { logInfo } from './util/log';
+import { logError, logInfo } from './util/log';
+import { normalizePathKey } from './util/pathUtil';
 
 const STORAGE_KEY = 'codeColorfulRecentFiles.records';
+const BACKUP_FILE_NAME = 'colorful-recent-files.json';
+
+export { normalizePathKey };
 
 export class RecentFilesManager {
   private recordsMap = new Map<string, RecentFileRecord>();
@@ -20,12 +26,66 @@ export class RecentFilesManager {
     }
   }
 
+  /** 取得工作區本機備份路徑 (跨 install / uninstall 保留資料) */
+  private getWorkspaceBackupPath(): string | undefined {
+    const folders = vscode.workspace.workspaceFolders;
+    if (!folders || folders.length === 0) {
+      return undefined;
+    }
+    const rootPath = folders[0].uri.fsPath;
+    const vscodeDir = path.join(rootPath, '.vscode');
+    return path.join(vscodeDir, BACKUP_FILE_NAME);
+  }
+
+  private resolveValidTime(fsPath: string, existingTime?: number): number {
+    if (typeof existingTime === 'number' && !isNaN(existingTime) && existingTime > 0) {
+      return existingTime;
+    }
+    try {
+      if (fs.existsSync(fsPath)) {
+        const stat = fs.statSync(fsPath);
+        return stat.mtimeMs || Date.now();
+      }
+    } catch {
+      // 忽略錯誤
+    }
+    return Date.now();
+  }
+
   private loadFromStorage(): void {
-    const raw = this.context.workspaceState.get<RecentFileRecord[]>(STORAGE_KEY, []);
+    let raw = this.context.workspaceState.get<RecentFileRecord[]>(STORAGE_KEY);
+
+    // 若 workspaceState 為空 (例如剛被 uninstall 再 reinstall)，嘗試從工作區備份恢復
+    if (!raw || raw.length === 0) {
+      const backupPath = this.getWorkspaceBackupPath();
+      if (backupPath && fs.existsSync(backupPath)) {
+        try {
+          const content = fs.readFileSync(backupPath, 'utf8');
+          raw = JSON.parse(content) as RecentFileRecord[];
+          logInfo(`Restored ${raw.length} recent files from backup file: ${backupPath}`);
+        } catch (err) {
+          logError('Failed to read backup recent files file', err);
+        }
+      }
+    }
+
     this.recordsMap.clear();
-    for (const item of raw) {
-      if (item && item.uri) {
-        this.recordsMap.set(item.uri, item);
+    if (Array.isArray(raw)) {
+      for (const item of raw) {
+        if (item && item.fsPath) {
+          // 檢查檔案是否存在；若存在，保證時間有效 (若時間遺失則補以真實 mtime)
+          if (fs.existsSync(item.fsPath)) {
+            const lastOpened = this.resolveValidTime(item.fsPath, item.lastOpenedTime);
+            const lastModified = this.resolveValidTime(item.fsPath, item.lastModifiedTime);
+            const record: RecentFileRecord = {
+              uri: item.uri || vscode.Uri.file(item.fsPath).toString(),
+              fsPath: item.fsPath,
+              lastOpenedTime: lastOpened,
+              lastModifiedTime: lastModified,
+            };
+            this.recordsMap.set(normalizePathKey(item.fsPath), record);
+          }
+        }
       }
     }
     this.sortedCache = null;
@@ -34,6 +94,20 @@ export class RecentFilesManager {
   private async saveToStorage(): Promise<void> {
     const records = this.getRecords();
     await this.context.workspaceState.update(STORAGE_KEY, records);
+
+    // 跨 install 備份至 .vscode/colorful-recent-files.json
+    try {
+      const backupPath = this.getWorkspaceBackupPath();
+      if (backupPath) {
+        const dir = path.dirname(backupPath);
+        if (!fs.existsSync(dir)) {
+          fs.mkdirSync(dir, { recursive: true });
+        }
+        fs.writeFileSync(backupPath, JSON.stringify(records, null, 2), 'utf8');
+      }
+    } catch (err) {
+      logError('Failed to save recent files backup', err);
+    }
   }
 
   public getRecords(): RecentFileRecord[] {
@@ -42,22 +116,35 @@ export class RecentFilesManager {
     }
     const config = getExtensionConfig();
     const sorted = Array.from(this.recordsMap.values()).sort((a, b) => {
-      const timeA = Math.max(a.lastOpenedTime, a.lastModifiedTime);
-      const timeB = Math.max(b.lastOpenedTime, b.lastModifiedTime);
-      return timeB - timeA;
+      const timeA = Math.max(a.lastOpenedTime || 0, a.lastModifiedTime || 0);
+      const timeB = Math.max(b.lastOpenedTime || 0, b.lastModifiedTime || 0);
+      if (timeB !== timeA) {
+        return timeB - timeA;
+      }
+      return a.fsPath.localeCompare(b.fsPath);
     });
     this.sortedCache = sorted.slice(0, config.maxRecentFiles);
     return this.sortedCache;
   }
 
-  public getRecordByUri(uriString: string): RecentFileRecord | undefined {
-    return this.recordsMap.get(uriString);
+  public getRecordByFsPath(fsPath: string): RecentFileRecord | undefined {
+    return this.recordsMap.get(normalizePathKey(fsPath));
   }
 
-  /** 取得該 URI 在最新到最舊列表中的順位與總數 (0-indexed) */
-  public getRecordRank(uriString: string): { rank: number; total: number } | undefined {
+  public getRecordByUri(uriString: string): RecentFileRecord | undefined {
+    try {
+      const parsed = vscode.Uri.parse(uriString);
+      return this.getRecordByFsPath(parsed.fsPath);
+    } catch {
+      return undefined;
+    }
+  }
+
+  /** 取得該檔案在最新到最舊列表中的順位與總數 (0-indexed) */
+  public getRecordRank(fsPath: string): { rank: number; total: number } | undefined {
     const records = this.getRecords();
-    const index = records.findIndex((r) => r.uri === uriString);
+    const targetKey = normalizePathKey(fsPath);
+    const index = records.findIndex((r) => normalizePathKey(r.fsPath) === targetKey);
     if (index === -1) {
       return undefined;
     }
@@ -70,18 +157,20 @@ export class RecentFilesManager {
       return;
     }
 
-    const uriStr = uri.toString();
+    const key = normalizePathKey(uri.fsPath);
     const now = Date.now();
-    let record = this.recordsMap.get(uriStr);
+    let record = this.recordsMap.get(key);
 
     if (!record) {
+      // 全新加入時，若為 open，lastModified 以真實 mtime 保底，避免為 0
+      const realMtime = this.resolveValidTime(uri.fsPath);
       record = {
-        uri: uriStr,
+        uri: uri.toString(),
         fsPath: uri.fsPath,
         lastOpenedTime: now,
-        lastModifiedTime: kind === 'modify' ? now : 0,
+        lastModifiedTime: kind === 'modify' ? now : realMtime,
       };
-      this.recordsMap.set(uriStr, record);
+      this.recordsMap.set(key, record);
     } else {
       if (kind === 'open') {
         record.lastOpenedTime = now;
@@ -98,7 +187,7 @@ export class RecentFilesManager {
       const records = this.getRecords();
       this.recordsMap.clear();
       for (const r of records) {
-        this.recordsMap.set(r.uri, r);
+        this.recordsMap.set(normalizePathKey(r.fsPath), r);
       }
       this.sortedCache = records;
     }
@@ -108,10 +197,16 @@ export class RecentFilesManager {
   }
 
   public async removeRecord(uriStr: string): Promise<void> {
-    if (this.recordsMap.delete(uriStr)) {
-      this.sortedCache = null;
-      await this.saveToStorage();
-      this._onDidChangeRecentFiles.fire();
+    try {
+      const parsed = vscode.Uri.parse(uriStr);
+      const key = normalizePathKey(parsed.fsPath);
+      if (this.recordsMap.delete(key)) {
+        this.sortedCache = null;
+        await this.saveToStorage();
+        this._onDidChangeRecentFiles.fire();
+      }
+    } catch {
+      // 忽略錯誤
     }
   }
 
@@ -125,11 +220,9 @@ export class RecentFilesManager {
 
   public async pruneMissingFiles(): Promise<void> {
     let changed = false;
-    for (const [uriStr, record] of Array.from(this.recordsMap.entries())) {
-      try {
-        await vscode.workspace.fs.stat(vscode.Uri.parse(record.uri));
-      } catch {
-        this.recordsMap.delete(uriStr);
+    for (const [key, record] of Array.from(this.recordsMap.entries())) {
+      if (!fs.existsSync(record.fsPath)) {
+        this.recordsMap.delete(key);
         changed = true;
       }
     }

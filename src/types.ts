@@ -1,5 +1,6 @@
 /** 專屬 URI Scheme 用於局部裝飾自訂 TreeView，隔離原生 Explorer */
 export const RECENT_SCHEME = 'colorful-recent';
+export const RECENT_FOLDER_SCHEME = 'colorful-recent-folder';
 
 /** 最近檔案記錄結構 */
 export interface RecentFileRecord {
@@ -26,6 +27,7 @@ export type RecentTreeElement = RecentFolderElement | RecentFileElement;
 export interface RecentFolderElement {
   kind: 'folder';
   folderPath: string;      // 相對工作區或目錄路徑
+  folderAbsolutePath: string; // 完整絕對路徑
   folderName: string;
   files: RecentFileRecord[];
 }
