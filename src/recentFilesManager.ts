@@ -147,8 +147,31 @@ export class RecentFilesManager {
     return { rank: index, total: records.length };
   }
 
+  /** 主動置頂特定檔案 (點擊即時刷新) */
+  public async touchFile(fsPath: string): Promise<void> {
+    const key = normalizePathKey(fsPath);
+    const now = Date.now();
+    let record = this.recordsMap.get(key);
+
+    if (record) {
+      record.lastOpenedTime = now;
+    } else {
+      const realMtime = this.resolveValidTime(fsPath);
+      record = {
+        uri: vscode.Uri.file(fsPath).toString(),
+        fsPath: fsPath,
+        lastOpenedTime: now,
+        lastModifiedTime: realMtime,
+      };
+      this.recordsMap.set(key, record);
+    }
+
+    this.sortedCache = null;
+    await this.saveToStorage();
+    this._onDidChangeRecentFiles.fire();
+  }
+
   public async recordAccess(uri: vscode.Uri, kind: 'open' | 'modify'): Promise<void> {
-    // 僅追蹤 file 協定，排除虛擬文檔與內部 output
     if (uri.scheme !== 'file') {
       return;
     }

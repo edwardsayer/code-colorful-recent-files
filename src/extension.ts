@@ -112,11 +112,11 @@ export function activate(context: vscode.ExtensionContext): void {
     })
   );
 
-  // 註冊指令：開啟檔案 (主動更新時間記錄並將該檔案置頂)
+  // 註冊指令：開啟檔案 (主動更新時間記錄並將該檔案及所屬資料夾立刻置頂)
   context.subscriptions.push(
     vscode.commands.registerCommand('codeColorfulRecentFiles.openFile', async (uri: vscode.Uri) => {
       if (uri) {
-        await manager.recordAccess(uri, 'open');
+        await manager.touchFile(uri.fsPath);
         await vscode.commands.executeCommand('vscode.open', uri);
       }
     })

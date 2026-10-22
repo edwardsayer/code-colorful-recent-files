@@ -3,7 +3,7 @@ import { getExtensionConfig } from './config';
 import { RecentFilesManager } from './recentFilesManager';
 import { HeatmapLevel, RECENT_FOLDER_SCHEME, RECENT_SCHEME } from './types';
 import { getSpectrumThemeColorId } from './util/color';
-import { calculateHeatmapLevel, formatRelativeTime, getMetricTime } from './util/time';
+import { calculateHeatmapLevel, getMetricTime } from './util/time';
 
 export class RecentFileDecorationProvider implements vscode.FileDecorationProvider {
   private readonly _onDidChangeFileDecorations = new vscode.EventEmitter<vscode.Uri | vscode.Uri[] | undefined>();
@@ -63,8 +63,11 @@ export class RecentFileDecorationProvider implements vscode.FileDecorationProvid
         folderColorId = this.getFileThemeColorId(primaryPath);
       }
 
+      // Badge 最多限制 2 個字元
+      const safeBadge = count.length > 2 ? '99' : count;
+
       return {
-        badge: count,
+        badge: safeBadge,
         color: folderColorId ? new vscode.ThemeColor(folderColorId) : new vscode.ThemeColor('descriptionForeground'),
         tooltip: undefined,
       };
@@ -96,15 +99,14 @@ export class RecentFileDecorationProvider implements vscode.FileDecorationProvid
       return undefined;
     }
 
-    const metricTime = getMetricTime(record, config.highlightMode);
-    const timeStr = formatRelativeTime(metricTime);
-
     // 取得順位編號 (1-indexed)
     const rankInfo = this.manager.getRecordRank(record.fsPath);
     const rankNumber = rankInfo ? rankInfo.rank + 1 : 1;
 
-    // 依使用者指示：不管是哪種顯示模式，Badge 都顯示 "#1 剛剛"、"#2 5m"、"#3 1h"
-    const badgeText = `#${rankNumber} ${timeStr}`;
+    // ★ 關鍵修復：VS Code 的 FileDecoration.badge 嚴格限制 1~2 個字元！
+    // 超過 2 個字元會導致整份裝飾被 VS Code 作廢拋棄，連帶使彩虹顏色完全消失！
+    // 因此 Badge 放置順位號碼 (如 "1", "2", "99"，1~2字元)，保證 100% 合法且絕不被作廢
+    const badgeText = rankNumber > 99 ? '99' : String(rankNumber);
 
     const themeColorId = this.getFileThemeColorId(record.fsPath);
     if (!themeColorId) {

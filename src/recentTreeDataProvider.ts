@@ -11,7 +11,7 @@ import {
   RecentTreeElement,
 } from './types';
 import { createColorDotSvgDataUri, interpolateRainbow } from './util/color';
-import { calculateHeatmapLevel, getMetricTime } from './util/time';
+import { calculateHeatmapLevel, formatRelativeTime, getMetricTime } from './util/time';
 
 export class RecentTreeDataProvider implements vscode.TreeDataProvider<RecentTreeElement> {
   private readonly _onDidChangeTreeData = new vscode.EventEmitter<RecentTreeElement | undefined | null | void>();
@@ -60,13 +60,18 @@ export class RecentTreeDataProvider implements vscode.TreeDataProvider<RecentTre
     const item = new vscode.TreeItem(viewItemUri, vscode.TreeItemCollapsibleState.None);
     const config = getExtensionConfig();
 
-    item.description = undefined;
+    const metricTime = getMetricTime(element.record, config.highlightMode);
+    const timeStr = formatRelativeTime(metricTime);
+    const rankInfo = this.manager.getRecordRank(element.record.fsPath);
+    const rankNumber = rankInfo ? rankInfo.rank + 1 : 1;
+
+    // ★ 關鍵呈現：在 description 中完整呈現序號與時間 (例如 "#1 剛剛"、"#2 5m")
+    item.description = `#${rankNumber} • ${timeStr}`;
     item.tooltip = undefined;
 
     // 只有在使用者明確勾選 showColorDotIcon 時，才顯示色彩小圓點，預設維持原生檔案主題圖示
     if (config.showColorDotIcon) {
       if (config.colorScheme === 'rankSpectrum') {
-        const rankInfo = this.manager.getRecordRank(element.record.fsPath);
         if (rankInfo) {
           const { rank, total } = rankInfo;
           const t = total > 1 ? rank / (total - 1) : 0;
@@ -74,7 +79,6 @@ export class RecentTreeDataProvider implements vscode.TreeDataProvider<RecentTre
           item.iconPath = vscode.Uri.parse(createColorDotSvgDataUri(colorHex));
         }
       } else {
-        const metricTime = getMetricTime(element.record, config.highlightMode);
         const level = calculateHeatmapLevel(metricTime);
         let dotColor = '#94a3b8';
         switch (level) {
@@ -112,7 +116,7 @@ export class RecentTreeDataProvider implements vscode.TreeDataProvider<RecentTre
     if (!element) {
       // 根層級
       if (!config.groupByDirectory) {
-        // 扁平模式：直接回傳所有檔案
+        // 扁平模式：直接回傳所有檔案 (已由 manager 按最新時間由新到舊排序)
         return records.map((record) => ({
           kind: 'file',
           record,
@@ -148,7 +152,7 @@ export class RecentTreeDataProvider implements vscode.TreeDataProvider<RecentTre
           shortName = '工作區根目錄';
         }
 
-        // 該資料夾內的檔案按時間倒序排序，第一筆即為最新檔案
+        // 該資料夾內的檔案按時間倒序排序，第一筆即為最新活動檔案
         const sortedFiles = [...group.files].sort((a, b) => {
           const timeA = Math.max(a.lastOpenedTime || 0, a.lastModifiedTime || 0);
           const timeB = Math.max(b.lastOpenedTime || 0, b.lastModifiedTime || 0);
@@ -165,12 +169,17 @@ export class RecentTreeDataProvider implements vscode.TreeDataProvider<RecentTre
         });
       }
 
-      // 依資料夾名稱排序
-      folderElements.sort((a, b) => a.folderName.localeCompare(b.folderName));
+      // ★ 核心修復：資料夾依該目錄內最新檔案活動時間由新到舊排序！絕不用字母排序！
+      folderElements.sort((a, b) => {
+        const timeA = a.files[0] ? Math.max(a.files[0].lastOpenedTime || 0, a.files[0].lastModifiedTime || 0) : 0;
+        const timeB = b.files[0] ? Math.max(b.files[0].lastOpenedTime || 0, b.files[0].lastModifiedTime || 0) : 0;
+        return timeB - timeA;
+      });
+
       return folderElements;
     }
 
-    // 子層級：Folder 下的檔案
+    // 子層級：Folder 下的檔案 (已照時間由新到舊排序)
     if (element.kind === 'folder') {
       return element.files.map((record) => ({
         kind: 'file',
