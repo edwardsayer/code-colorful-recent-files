@@ -10,6 +10,8 @@ export function getExtensionConfig(): ExtensionConfig {
     maxRecentFiles: config.get<number>('maxRecentFiles', 50),
     highlightMode: config.get<'lastAccess' | 'lastModified'>('highlightMode', 'lastAccess'),
     colorScheme: config.get<ColorScheme>('colorScheme', 'rankSpectrum'),
+    showColorDotIcon: config.get<boolean>('showColorDotIcon', false),
+    styleNativeExplorer: config.get<boolean>('styleNativeExplorer', false),
   };
 }
 

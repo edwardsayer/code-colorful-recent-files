@@ -135,6 +135,16 @@
           "default": "rankSpectrum",
           "description": "%configuration.colorScheme.description%"
         },
+        "codeColorfulRecentFiles.showColorDotIcon": {
+          "type": "boolean",
+          "default": false,
+          "description": "%configuration.showColorDotIcon.description%"
+        },
+        "codeColorfulRecentFiles.styleNativeExplorer": {
+          "type": "boolean",
+          "default": false,
+          "description": "%configuration.styleNativeExplorer.description%"
+        },
         "codeColorfulRecentFiles.maxRecentFiles": {
           "type": "integer",
           "default": 50,

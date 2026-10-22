@@ -13,6 +13,8 @@
   "configuration.title": "彩色最近檔案",
   "configuration.groupByDirectory.description": "在樹狀檢視中依上層目錄對最近檔案進行分組。",
   "configuration.colorScheme.description": "色彩標記方案：連續彩虹順位色譜（由最新紅平滑運算過渡至最舊紫）或時間間隔階梯分級。",
+  "configuration.showColorDotIcon.description": "在最近檔案樹狀檢視中顯示色彩小圓點圖示（預設為關閉，維持顯示原生檔案圖示）。",
+  "configuration.styleNativeExplorer.description": "是否將色彩裝飾與右方標注同時套用至 VS Code 原生檔案總管（原生 Explorer）。",
   "configuration.maxRecentFiles.description": "工作區內最多追蹤記錄的最近檔案數量。",
   "configuration.highlightMode.description": "時間熱度裝飾基準：最後存取時間（開啟/切換焦點）或最後修改時間（編輯/儲存）。",
   "capabilities.untrustedWorkspaces.description": "本機執行，不寫入不受信任磁碟亦不執行不受信任程式碼。",

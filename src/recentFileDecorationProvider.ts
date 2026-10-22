@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { getExtensionConfig } from './config';
 import { RecentFilesManager } from './recentFilesManager';
-import { HeatmapLevel } from './types';
+import { HeatmapLevel, RECENT_SCHEME } from './types';
 import { getSpectrumThemeColorId } from './util/color';
 import { calculateHeatmapLevel, formatRelativeTime, getMetricTime } from './util/time';
 
@@ -21,59 +21,63 @@ export class RecentFileDecorationProvider implements vscode.FileDecorationProvid
   }
 
   public provideFileDecoration(uri: vscode.Uri): vscode.FileDecoration | undefined {
-    const record = this.manager.getRecordByUri(uri.toString());
+    const config = getExtensionConfig();
+
+    // 隔離原生 Explorer：若未啟用 styleNativeExplorer，則非 RECENT_SCHEME 的 URI 一律不裝飾
+    if (!config.styleNativeExplorer && uri.scheme !== RECENT_SCHEME) {
+      return undefined;
+    }
+
+    // 取得原始 file 協定之 URI 字串進行資料查詢
+    const fileUriStr = uri.with({ scheme: 'file' }).toString();
+    const record = this.manager.getRecordByUri(fileUriStr);
     if (!record) {
       return undefined;
     }
 
-    const config = getExtensionConfig();
     const metricTime = getMetricTime(record, config.highlightMode);
-    const relativeTimeStr = formatRelativeTime(metricTime);
+    // 右方標注統一採用時間簡寫（如 剛剛, 5m, 1h, 2d），不論哪套上色方案
+    const badgeText = formatRelativeTime(metricTime);
 
-    // 方案 A: 順位彩虹光譜模式 (Rank-based Spectrum)
+    // 依選定的配色方案決定 ThemeColor
+    let themeColorId: string | undefined;
+
     if (config.colorScheme === 'rankSpectrum') {
-      const rankInfo = this.manager.getRecordRank(uri.toString());
-      if (!rankInfo) {
-        return undefined;
+      const rankInfo = this.manager.getRecordRank(fileUriStr);
+      if (rankInfo) {
+        const { rank, total } = rankInfo;
+        const t = total > 1 ? rank / (total - 1) : 0;
+        themeColorId = getSpectrumThemeColorId(t);
       }
-
-      const { rank, total } = rankInfo;
-      // 避免除以 0：若只有 1 筆檔案，t = 0 (最新紅色)
-      const t = total > 1 ? rank / (total - 1) : 0;
-      const themeColorId = getSpectrumThemeColorId(t);
-      const rankNumber = rank + 1;
-
-      return {
-        badge: `${rankNumber}`,
-        color: new vscode.ThemeColor(themeColorId),
-        tooltip: vscode.l10n.t('tooltip.rankSpectrum', rankNumber, total, relativeTimeStr),
-      };
+    } else {
+      // timeBucket 模式
+      const level = calculateHeatmapLevel(metricTime);
+      switch (level) {
+        case HeatmapLevel.Fresh:
+          themeColorId = 'charts.green';
+          break;
+        case HeatmapLevel.Warm:
+          themeColorId = 'charts.yellow';
+          break;
+        case HeatmapLevel.Day:
+          themeColorId = 'charts.orange';
+          break;
+        case HeatmapLevel.Old:
+        default:
+          themeColorId = undefined;
+          break;
+      }
     }
 
-    // 方案 B: 時間階梯模式 (Time Bucket)
-    const level = calculateHeatmapLevel(metricTime);
-    switch (level) {
-      case HeatmapLevel.Fresh:
-        return {
-          badge: '●',
-          color: new vscode.ThemeColor('charts.green'),
-          tooltip: vscode.l10n.t('tooltip.accessed', relativeTimeStr),
-        };
-      case HeatmapLevel.Warm:
-        return {
-          badge: '1h',
-          color: new vscode.ThemeColor('charts.yellow'),
-          tooltip: vscode.l10n.t('tooltip.accessed', relativeTimeStr),
-        };
-      case HeatmapLevel.Day:
-        return {
-          badge: '1d',
-          color: new vscode.ThemeColor('charts.orange'),
-          tooltip: vscode.l10n.t('tooltip.accessed', relativeTimeStr),
-        };
-      case HeatmapLevel.Old:
-      default:
-        return undefined;
+    if (!themeColorId) {
+      return undefined;
     }
+
+    return {
+      badge: badgeText,
+      color: new vscode.ThemeColor(themeColorId),
+      // tooltip 維持 undefined，不特別加上附加訊息，維持 VS Code 原生路徑顯示
+      tooltip: undefined,
+    };
   }
 }

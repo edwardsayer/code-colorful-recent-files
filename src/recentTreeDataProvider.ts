@@ -2,10 +2,9 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { getExtensionConfig } from './config';
 import { RecentFilesManager } from './recentFilesManager';
-import { RecentFileRecord, RecentFolderElement, RecentTreeElement } from './types';
+import { HeatmapLevel, RECENT_SCHEME, RecentFileRecord, RecentFolderElement, RecentTreeElement } from './types';
 import { createColorDotSvgDataUri, interpolateRainbow } from './util/color';
-import { calculateHeatmapLevel, formatRelativeTime, getMetricTime } from './util/time';
-import { HeatmapLevel } from './types';
+import { calculateHeatmapLevel, getMetricTime } from './util/time';
 
 export class RecentTreeDataProvider implements vscode.TreeDataProvider<RecentTreeElement> {
   private readonly _onDidChangeTreeData = new vscode.EventEmitter<RecentTreeElement | undefined | null | void>();
@@ -23,6 +22,7 @@ export class RecentTreeDataProvider implements vscode.TreeDataProvider<RecentTre
 
   public getTreeItem(element: RecentTreeElement): vscode.TreeItem {
     if (element.kind === 'folder') {
+      // 資料夾只顯示最後一段名稱，完整相對路徑放 tooltip (hint)
       const item = new vscode.TreeItem(element.folderName, vscode.TreeItemCollapsibleState.Expanded);
       item.iconPath = new vscode.ThemeIcon('folder');
       item.description = `${element.files.length}`;
@@ -32,74 +32,55 @@ export class RecentTreeDataProvider implements vscode.TreeDataProvider<RecentTre
     }
 
     // element.kind === 'file'
-    const uri = vscode.Uri.parse(element.record.uri);
-    const item = new vscode.TreeItem(uri, vscode.TreeItemCollapsibleState.None);
+    const originalFileUri = vscode.Uri.parse(element.record.uri);
+    // 使用專屬 scheme，以利 FileDecoration 僅局部裝飾自家 TreeView，不污染原生 Explorer
+    const viewItemUri = originalFileUri.with({ scheme: RECENT_SCHEME });
 
+    const item = new vscode.TreeItem(viewItemUri, vscode.TreeItemCollapsibleState.None);
     const config = getExtensionConfig();
-    const metricTime = getMetricTime(element.record, config.highlightMode);
-    const timeStr = formatRelativeTime(metricTime);
 
-    // 計算相對工作區路徑
-    let relPath = '';
-    const workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
-    if (workspaceFolder) {
-      relPath = path.relative(workspaceFolder.uri.fsPath, path.dirname(uri.fsPath));
-    } else {
-      relPath = path.dirname(uri.fsPath);
-    }
+    // 依使用者需求：檔案不用顯示小字描述，資訊移至右方數字/時間標注
+    item.description = undefined;
+    // tooltip 維持原生，不額外附加自訂訊息
+    item.tooltip = undefined;
 
-    // 圖示與色彩設定
-    if (config.colorScheme === 'rankSpectrum') {
-      const rankInfo = this.manager.getRecordRank(element.record.uri);
-      if (rankInfo) {
-        const { rank, total } = rankInfo;
-        const t = total > 1 ? rank / (total - 1) : 0;
-        // 運算漸變出來的精確彩虹 hex 色碼
-        const colorHex = interpolateRainbow(t);
-        const dataUriString = createColorDotSvgDataUri(colorHex);
-        item.iconPath = vscode.Uri.parse(dataUriString);
-
-        const rankTag = `#${rank + 1}`;
-        if (config.groupByDirectory) {
-          item.description = `${rankTag} • ${timeStr}`;
-        } else {
-          item.description = relPath ? `${rankTag} • ${relPath} • ${timeStr}` : `${rankTag} • ${timeStr}`;
+    // 只有在使用者明確啟用 showColorDotIcon 時，才顯示色彩小圓點，預設維持原生檔案 icon
+    if (config.showColorDotIcon) {
+      if (config.colorScheme === 'rankSpectrum') {
+        const rankInfo = this.manager.getRecordRank(element.record.uri);
+        if (rankInfo) {
+          const { rank, total } = rankInfo;
+          const t = total > 1 ? rank / (total - 1) : 0;
+          const colorHex = interpolateRainbow(t);
+          item.iconPath = vscode.Uri.parse(createColorDotSvgDataUri(colorHex));
         }
       } else {
-        item.description = timeStr;
+        const metricTime = getMetricTime(element.record, config.highlightMode);
+        const level = calculateHeatmapLevel(metricTime);
+        let dotColor = '#94a3b8';
+        switch (level) {
+          case HeatmapLevel.Fresh:
+            dotColor = '#10b981';
+            break;
+          case HeatmapLevel.Warm:
+            dotColor = '#f59e0b';
+            break;
+          case HeatmapLevel.Day:
+            dotColor = '#f97316';
+            break;
+        }
+        item.iconPath = vscode.Uri.parse(createColorDotSvgDataUri(dotColor));
       }
     } else {
-      // timeBucket 模式
-      const level = calculateHeatmapLevel(metricTime);
-      let dotColor: string | undefined;
-      switch (level) {
-        case HeatmapLevel.Fresh:
-          dotColor = '#10b981'; // 翠綠
-          break;
-        case HeatmapLevel.Warm:
-          dotColor = '#f59e0b'; // 金黃
-          break;
-        case HeatmapLevel.Day:
-          dotColor = '#f97316'; // 亮橘
-          break;
-        case HeatmapLevel.Old:
-        default:
-          dotColor = '#94a3b8'; // 灰藍
-          break;
-      }
-      item.iconPath = vscode.Uri.parse(createColorDotSvgDataUri(dotColor));
-
-      if (config.groupByDirectory) {
-        item.description = timeStr;
-      } else {
-        item.description = relPath ? `${relPath} • ${timeStr}` : timeStr;
-      }
+      // 預設不覆寫 iconPath，由 VS Code 依副檔名自動套用使用者安裝的 File Icon Theme
+      item.iconPath = undefined;
     }
 
+    // 點擊事件：開啟真正的本機檔案
     item.command = {
       command: 'vscode.open',
       title: 'Open File',
-      arguments: [uri],
+      arguments: [originalFileUri],
     };
 
     item.contextValue = 'fileItem';
@@ -139,10 +120,18 @@ export class RecentTreeDataProvider implements vscode.TreeDataProvider<RecentTre
 
       const folderElements: RecentFolderElement[] = [];
       for (const [folderPath, files] of groups.entries()) {
+        // 依需求：只顯示最後一段名稱
+        let shortName = folderPath;
+        if (folderPath === '.') {
+          shortName = '工作區根目錄';
+        } else {
+          shortName = path.basename(folderPath);
+        }
+
         folderElements.push({
           kind: 'folder',
           folderPath,
-          folderName: folderPath === '.' ? '工作區根目錄' : folderPath,
+          folderName: shortName,
           files,
         });
       }

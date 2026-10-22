@@ -1,3 +1,6 @@
+/** 專屬 URI Scheme 用於局部裝飾自訂 TreeView，隔離原生 Explorer */
+export const RECENT_SCHEME = 'colorful-recent';
+
 /** 最近檔案記錄結構 */
 export interface RecentFileRecord {
   uri: string;              // 檔案 URI 字串 (file://...)
@@ -39,4 +42,6 @@ export interface ExtensionConfig {
   maxRecentFiles: number;
   highlightMode: 'lastAccess' | 'lastModified';
   colorScheme: ColorScheme;
+  showColorDotIcon: boolean;
+  styleNativeExplorer: boolean;
 }
