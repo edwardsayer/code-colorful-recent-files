@@ -20,10 +20,7 @@ export class RecentFilesManager {
   constructor(private readonly context: vscode.ExtensionContext) {
     this.loadFromStorage();
     this.registerEventListeners();
-    // 檢查現有活躍編輯器
-    if (vscode.window.activeTextEditor) {
-      this.recordAccess(vscode.window.activeTextEditor.document.uri, 'open');
-    }
+    this.scanInitialTabs();
   }
 
   /** 取得工作區本機備份路徑 (跨 install / uninstall 保留資料) */
@@ -73,7 +70,6 @@ export class RecentFilesManager {
     if (Array.isArray(raw)) {
       for (const item of raw) {
         if (item && item.fsPath) {
-          // 檢查檔案是否存在；若存在，保證時間有效 (若時間遺失則補以真實 mtime)
           if (fs.existsSync(item.fsPath)) {
             const lastOpened = this.resolveValidTime(item.fsPath, item.lastOpenedTime);
             const lastModified = this.resolveValidTime(item.fsPath, item.lastModifiedTime);
@@ -162,7 +158,6 @@ export class RecentFilesManager {
     let record = this.recordsMap.get(key);
 
     if (!record) {
-      // 全新加入時，若為 open，lastModified 以真實 mtime 保底，避免為 0
       const realMtime = this.resolveValidTime(uri.fsPath);
       record = {
         uri: uri.toString(),
@@ -233,8 +228,33 @@ export class RecentFilesManager {
     }
   }
 
+  /** 從 Tab 物件中提取檔案 URI (支援圖片、二進位與文字自訂編輯器) */
+  private extractTabUri(tab: vscode.Tab): vscode.Uri | undefined {
+    if (!tab || !tab.input) return undefined;
+    const input = tab.input as any;
+    if (input.uri instanceof vscode.Uri) {
+      return input.uri;
+    }
+    if (input.resource instanceof vscode.Uri) {
+      return input.resource;
+    }
+    return undefined;
+  }
+
+  private scanInitialTabs(): void {
+    try {
+      const activeTab = vscode.window.tabGroups.activeTabGroup?.activeTab;
+      if (activeTab) {
+        const uri = this.extractTabUri(activeTab);
+        if (uri) this.recordAccess(uri, 'open');
+      }
+    } catch {
+      // 忽略
+    }
+  }
+
   private registerEventListeners(): void {
-    // 活躍編輯器切換
+    // 1. 活躍編輯器切換 (文字編輯器)
     this.context.subscriptions.push(
       vscode.window.onDidChangeActiveTextEditor((editor) => {
         if (editor?.document) {
@@ -243,14 +263,34 @@ export class RecentFilesManager {
       })
     );
 
-    // 文件開啟
+    // 2. Tab 分頁事件監聽 (★ 支援圖像檔、CustomEditor 與任何二進位編輯器)
+    this.context.subscriptions.push(
+      vscode.window.tabGroups.onDidChangeTabs((e) => {
+        for (const tab of e.opened) {
+          const uri = this.extractTabUri(tab);
+          if (uri) this.recordAccess(uri, 'open');
+        }
+      })
+    );
+
+    this.context.subscriptions.push(
+      vscode.window.tabGroups.onDidChangeTabGroups(() => {
+        const activeTab = vscode.window.tabGroups.activeTabGroup?.activeTab;
+        if (activeTab) {
+          const uri = this.extractTabUri(activeTab);
+          if (uri) this.recordAccess(uri, 'open');
+        }
+      })
+    );
+
+    // 3. 文件開啟
     this.context.subscriptions.push(
       vscode.workspace.onDidOpenTextDocument((doc) => {
         this.recordAccess(doc.uri, 'open');
       })
     );
 
-    // 文件編輯內容異動
+    // 4. 文件編輯內容異動
     this.context.subscriptions.push(
       vscode.workspace.onDidChangeTextDocument((e) => {
         if (e.contentChanges.length > 0) {
@@ -259,7 +299,7 @@ export class RecentFilesManager {
       })
     );
 
-    // 文件儲存
+    // 5. 文件儲存
     this.context.subscriptions.push(
       vscode.workspace.onDidSaveTextDocument((doc) => {
         this.recordAccess(doc.uri, 'modify');

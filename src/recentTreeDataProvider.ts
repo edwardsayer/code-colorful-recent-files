@@ -29,19 +29,19 @@ export class RecentTreeDataProvider implements vscode.TreeDataProvider<RecentTre
 
   public getTreeItem(element: RecentTreeElement): vscode.TreeItem {
     if (element.kind === 'folder') {
-      // 資料夾使用專屬 scheme 且攜帶檔案數量，使數量呈現在最右側標注 (Badge)
-      const folderUri = vscode.Uri.file(element.folderAbsolutePath);
-      const viewFolderUri = folderUri.with({
+      // 資料夾 URI 攜帶檔案數量與該資料夾內第一筆 (最新) 檔案路徑，供顏色與標注連動
+      const folderFsUri = vscode.Uri.file(element.folderAbsolutePath);
+      const query = `count=${element.files.length}&primary=${encodeURIComponent(element.primaryFileFsPath || '')}`;
+      const viewFolderUri = vscode.Uri.from({
         scheme: RECENT_FOLDER_SCHEME,
-        query: String(element.files.length),
+        path: folderFsUri.path,
+        query,
       });
 
       const item = new vscode.TreeItem(viewFolderUri, vscode.TreeItemCollapsibleState.Expanded);
-      // 標題只顯示最後一段
       item.label = element.folderName;
-      // 檔案數量移至右邊 Badge 標注，清空 description
       item.description = undefined;
-      // Hint (Tooltip) 顯示完整絕對路徑，與原生 Explorer 一致
+      // Hint (Tooltip) 顯示完整絕對路徑
       item.tooltip = element.folderAbsolutePath;
       item.contextValue = 'folderItem';
 
@@ -50,18 +50,20 @@ export class RecentTreeDataProvider implements vscode.TreeDataProvider<RecentTre
 
     // element.kind === 'file'
     const originalFileUri = vscode.Uri.file(element.record.fsPath);
-    // 使用專屬 scheme，以利 FileDecoration 僅局部裝飾自家 TreeView，不污染原生 Explorer
-    const viewItemUri = originalFileUri.with({ scheme: RECENT_SCHEME });
+    // 專屬 scheme 隔離原生 Explorer，並以 query 攜帶精準本機絕對路徑
+    const viewItemUri = vscode.Uri.from({
+      scheme: RECENT_SCHEME,
+      path: originalFileUri.path,
+      query: `fsPath=${encodeURIComponent(element.record.fsPath)}`,
+    });
 
     const item = new vscode.TreeItem(viewItemUri, vscode.TreeItemCollapsibleState.None);
     const config = getExtensionConfig();
 
-    // 檔案清空小字描述，資訊完整整合至右側標注 (Badge)
     item.description = undefined;
-    // tooltip 維持原生路徑顯示，不額外附加自訂訊息
     item.tooltip = undefined;
 
-    // 只有在使用者明確勾選 showColorDotIcon 時，才顯示色彩小圓點，預設維持原生檔案圖示主題
+    // 只有在使用者明確勾選 showColorDotIcon 時，才顯示色彩小圓點，預設維持原生檔案主題圖示
     if (config.showColorDotIcon) {
       if (config.colorScheme === 'rankSpectrum') {
         const rankInfo = this.manager.getRecordRank(element.record.fsPath);
@@ -89,13 +91,12 @@ export class RecentTreeDataProvider implements vscode.TreeDataProvider<RecentTre
         item.iconPath = vscode.Uri.parse(createColorDotSvgDataUri(dotColor));
       }
     } else {
-      // 預設不覆寫 iconPath，交由 VS Code 根據 resourceUri 自動套用原生檔案主題圖示
       item.iconPath = undefined;
     }
 
-    // 點擊事件：開啟真正的本機檔案
+    // 點擊事件：委派給自訂 openFile 指令，主動更新時間並置頂
     item.command = {
-      command: 'vscode.open',
+      command: 'codeColorfulRecentFiles.openFile',
       title: 'Open File',
       arguments: [originalFileUri],
     };
@@ -147,12 +148,20 @@ export class RecentTreeDataProvider implements vscode.TreeDataProvider<RecentTre
           shortName = '工作區根目錄';
         }
 
+        // 該資料夾內的檔案按時間倒序排序，第一筆即為最新檔案
+        const sortedFiles = [...group.files].sort((a, b) => {
+          const timeA = Math.max(a.lastOpenedTime || 0, a.lastModifiedTime || 0);
+          const timeB = Math.max(b.lastOpenedTime || 0, b.lastModifiedTime || 0);
+          return timeB - timeA;
+        });
+
         folderElements.push({
           kind: 'folder',
           folderPath: workspaceRoot ? path.relative(workspaceRoot, absDir) || '.' : absDir,
           folderAbsolutePath: absDir,
           folderName: shortName || absDir,
-          files: group.files,
+          files: sortedFiles,
+          primaryFileFsPath: sortedFiles[0]?.fsPath,
         });
       }
 

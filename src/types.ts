@@ -26,10 +26,11 @@ export type RecentTreeElement = RecentFolderElement | RecentFileElement;
 
 export interface RecentFolderElement {
   kind: 'folder';
-  folderPath: string;      // 相對工作區或目錄路徑
+  folderPath: string;         // 相對工作區或目錄路徑
   folderAbsolutePath: string; // 完整絕對路徑
   folderName: string;
   files: RecentFileRecord[];
+  primaryFileFsPath?: string; // 該資料夾中排序第一 (最新) 的檔案路徑
 }
 
 export interface RecentFileElement {

@@ -3,12 +3,28 @@ import { getExtensionConfig, setColorScheme, setGroupByDirectory } from './confi
 import { RecentFileDecorationProvider } from './recentFileDecorationProvider';
 import { RecentFilesManager } from './recentFilesManager';
 import { RecentTreeDataProvider } from './recentTreeDataProvider';
-import { RecentFileElement } from './types';
+import { RECENT_FOLDER_SCHEME, RECENT_SCHEME, RecentFileElement } from './types';
 import { initLogger, logInfo } from './util/log';
+import { DummyFileSystemProvider } from './util/virtualFs';
 
 export function activate(context: vscode.ExtensionContext): void {
   initLogger(context);
   logInfo('Activating Colorful Recent Files extension...');
+
+  // 註冊虛擬 FileSystemProvider，使 VS Code FileDecoration 系統能辨識自訂 scheme 並正常賦予色彩與標注
+  const dummyFs = new DummyFileSystemProvider();
+  context.subscriptions.push(
+    vscode.workspace.registerFileSystemProvider(RECENT_SCHEME, dummyFs, {
+      isCaseSensitive: false,
+      isReadonly: true,
+    })
+  );
+  context.subscriptions.push(
+    vscode.workspace.registerFileSystemProvider(RECENT_FOLDER_SCHEME, dummyFs, {
+      isCaseSensitive: false,
+      isReadonly: true,
+    })
+  );
 
   const manager = new RecentFilesManager(context);
   const treeDataProvider = new RecentTreeDataProvider(manager);
@@ -26,7 +42,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.window.registerFileDecorationProvider(decorationProvider)
   );
 
-  // 監聽 configuration 變更（如使用者修改 groupByDirectory、highlightMode 或 colorScheme）
+  // 監聽 configuration 變更
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration((e) => {
       if (e.affectsConfiguration('codeColorfulRecentFiles')) {
@@ -96,10 +112,11 @@ export function activate(context: vscode.ExtensionContext): void {
     })
   );
 
-  // 註冊指令：開啟檔案
+  // 註冊指令：開啟檔案 (主動更新時間記錄並將該檔案置頂)
   context.subscriptions.push(
     vscode.commands.registerCommand('codeColorfulRecentFiles.openFile', async (uri: vscode.Uri) => {
       if (uri) {
+        await manager.recordAccess(uri, 'open');
         await vscode.commands.executeCommand('vscode.open', uri);
       }
     })
