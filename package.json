@@ -2,7 +2,7 @@
   "name": "code-colorful-recent-files",
   "displayName": "%extension.displayName%",
   "description": "%extension.description%",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "publisher": "edwardsayer",
   "icon": "assets/icon.png",
   "license": "MIT",
@@ -118,13 +118,48 @@
         "category": "%category.recentFiles%"
       },
       {
-        "command": "codeColorfulRecentFiles.toggleGroupByDirectory",
-        "title": "%command.toggleGroupByDirectory.title%",
+        "command": "codeColorfulRecentFiles.toggleGroupByDirectoryOn",
+        "title": "%command.toggleGroupByDirectory.on%",
         "category": "%category.recentFiles%"
       },
       {
-        "command": "codeColorfulRecentFiles.toggleColorScheme",
-        "title": "%command.toggleColorScheme.title%",
+        "command": "codeColorfulRecentFiles.toggleGroupByDirectoryOff",
+        "title": "%command.toggleGroupByDirectory.off%",
+        "category": "%category.recentFiles%"
+      },
+      {
+        "command": "codeColorfulRecentFiles.toggleColorSchemeRank",
+        "title": "%command.colorScheme.rank%",
+        "category": "%category.recentFiles%"
+      },
+      {
+        "command": "codeColorfulRecentFiles.toggleColorSchemeBucket",
+        "title": "%command.colorScheme.bucket%",
+        "category": "%category.recentFiles%"
+      },
+      {
+        "command": "codeColorfulRecentFiles.toggleShowColorDotIconOn",
+        "title": "%command.showColorDotIcon.off%",
+        "category": "%category.recentFiles%"
+      },
+      {
+        "command": "codeColorfulRecentFiles.toggleShowColorDotIconOff",
+        "title": "%command.showColorDotIcon.on%",
+        "category": "%category.recentFiles%"
+      },
+      {
+        "command": "codeColorfulRecentFiles.toggleStyleNativeExplorer",
+        "title": "%command.styleNativeExplorer.title%",
+        "category": "%category.recentFiles%"
+      },
+      {
+        "command": "codeColorfulRecentFiles.toggleHighlightModeToModified",
+        "title": "%command.highlightMode.toModified%",
+        "category": "%category.recentFiles%"
+      },
+      {
+        "command": "codeColorfulRecentFiles.toggleHighlightModeToAccess",
+        "title": "%command.highlightMode.toAccess%",
         "category": "%category.recentFiles%"
       },
       {
@@ -153,16 +188,50 @@
           "group": "navigation"
         },
         {
-          "command": "codeColorfulRecentFiles.toggleGroupByDirectory",
-          "when": "view == codeColorfulRecentFiles.recentView",
-          "group": "1_options@1",
-          "toggled": "config.codeColorfulRecentFiles.groupByDirectory"
+          "command": "codeColorfulRecentFiles.toggleGroupByDirectoryOff",
+          "when": "view == codeColorfulRecentFiles.recentView && config.codeColorfulRecentFiles.groupByDirectory",
+          "group": "1_options@1"
         },
         {
-          "command": "codeColorfulRecentFiles.toggleColorScheme",
+          "command": "codeColorfulRecentFiles.toggleGroupByDirectoryOn",
+          "when": "view == codeColorfulRecentFiles.recentView && !config.codeColorfulRecentFiles.groupByDirectory",
+          "group": "1_options@1"
+        },
+        {
+          "command": "codeColorfulRecentFiles.toggleColorSchemeRank",
+          "when": "view == codeColorfulRecentFiles.recentView && config.codeColorfulRecentFiles.colorScheme == 'rankSpectrum'",
+          "group": "1_options@2"
+        },
+        {
+          "command": "codeColorfulRecentFiles.toggleColorSchemeBucket",
+          "when": "view == codeColorfulRecentFiles.recentView && config.codeColorfulRecentFiles.colorScheme != 'rankSpectrum'",
+          "group": "1_options@2"
+        },
+        {
+          "command": "codeColorfulRecentFiles.toggleShowColorDotIconOff",
+          "when": "view == codeColorfulRecentFiles.recentView && config.codeColorfulRecentFiles.showColorDotIcon",
+          "group": "1_options@3"
+        },
+        {
+          "command": "codeColorfulRecentFiles.toggleShowColorDotIconOn",
+          "when": "view == codeColorfulRecentFiles.recentView && !config.codeColorfulRecentFiles.showColorDotIcon",
+          "group": "1_options@3"
+        },
+        {
+          "command": "codeColorfulRecentFiles.toggleStyleNativeExplorer",
           "when": "view == codeColorfulRecentFiles.recentView",
-          "group": "1_options@2",
-          "toggled": "config.codeColorfulRecentFiles.colorScheme == 'rankSpectrum'"
+          "group": "1_options@4",
+          "toggled": "config.codeColorfulRecentFiles.styleNativeExplorer"
+        },
+        {
+          "command": "codeColorfulRecentFiles.toggleHighlightModeToModified",
+          "when": "view == codeColorfulRecentFiles.recentView && config.codeColorfulRecentFiles.highlightMode == 'lastAccess'",
+          "group": "1_options@5"
+        },
+        {
+          "command": "codeColorfulRecentFiles.toggleHighlightModeToAccess",
+          "when": "view == codeColorfulRecentFiles.recentView && config.codeColorfulRecentFiles.highlightMode != 'lastAccess'",
+          "group": "1_options@5"
         },
         {
           "command": "codeColorfulRecentFiles.clearHistory",

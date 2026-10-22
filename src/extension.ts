@@ -1,5 +1,12 @@
 import * as vscode from 'vscode';
-import { getExtensionConfig, setColorScheme, setGroupByDirectory } from './config';
+import {
+  getExtensionConfig,
+  setColorScheme,
+  setGroupByDirectory,
+  setHighlightMode,
+  setShowColorDotIcon,
+  setStyleNativeExplorer,
+} from './config';
 import { RecentFileDecorationProvider } from './recentFileDecorationProvider';
 import { RecentFilesManager } from './recentFilesManager';
 import { RecentTreeDataProvider } from './recentTreeDataProvider';
@@ -69,25 +76,65 @@ export function activate(context: vscode.ExtensionContext): void {
     })
   );
 
-  // 註冊指令：切換目錄分組
+  // 註冊指令：切換目錄分組 (支援做法 A：固定寬度 Codicon 佔位)
+  const toggleGroupByDirectory = async () => {
+    const config = getExtensionConfig();
+    await setGroupByDirectory(!config.groupByDirectory);
+    treeDataProvider.refresh();
+  };
   context.subscriptions.push(
-    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleGroupByDirectory', async () => {
+    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleGroupByDirectory', toggleGroupByDirectory),
+    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleGroupByDirectoryOn', toggleGroupByDirectory),
+    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleGroupByDirectoryOff', toggleGroupByDirectory)
+  );
+
+  // 註冊指令：切換配色方案 (支援做法 B：尾端狀態標籤)
+  const toggleColorScheme = async () => {
+    const config = getExtensionConfig();
+    const nextScheme = config.colorScheme === 'rankSpectrum' ? 'timeBucket' : 'rankSpectrum';
+    await setColorScheme(nextScheme);
+    treeDataProvider.refresh();
+    decorationProvider.fireChange();
+  };
+  context.subscriptions.push(
+    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleColorScheme', toggleColorScheme),
+    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleColorSchemeRank', toggleColorScheme),
+    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleColorSchemeBucket', toggleColorScheme)
+  );
+
+  // 註冊指令：切換色彩小圓點圖示 (支援做法 C：尾端簡潔勾選符號)
+  const toggleShowColorDotIcon = async () => {
+    const config = getExtensionConfig();
+    await setShowColorDotIcon(!config.showColorDotIcon);
+    treeDataProvider.refresh();
+  };
+  context.subscriptions.push(
+    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleShowColorDotIcon', toggleShowColorDotIcon),
+    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleShowColorDotIconOn', toggleShowColorDotIcon),
+    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleShowColorDotIconOff', toggleShowColorDotIcon)
+  );
+
+  // 註冊指令：切換原生總管裝飾 (支援做法 D：VS Code 原生 toggled 對照組)
+  context.subscriptions.push(
+    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleStyleNativeExplorer', async () => {
       const config = getExtensionConfig();
-      const nextValue = !config.groupByDirectory;
-      await setGroupByDirectory(nextValue);
-      treeDataProvider.refresh();
+      await setStyleNativeExplorer(!config.styleNativeExplorer);
+      decorationProvider.fireChange();
     })
   );
 
-  // 註冊指令：切換配色方案 (彩虹順位色譜 vs 時間階梯)
+  // 註冊指令：切換熱度時間基準 (支援做法 E：動態切換動作語意)
+  const toggleHighlightMode = async () => {
+    const config = getExtensionConfig();
+    const nextMode = config.highlightMode === 'lastAccess' ? 'lastModified' : 'lastAccess';
+    await setHighlightMode(nextMode);
+    treeDataProvider.refresh();
+    decorationProvider.fireChange();
+  };
   context.subscriptions.push(
-    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleColorScheme', async () => {
-      const config = getExtensionConfig();
-      const nextScheme = config.colorScheme === 'rankSpectrum' ? 'timeBucket' : 'rankSpectrum';
-      await setColorScheme(nextScheme);
-      treeDataProvider.refresh();
-      decorationProvider.fireChange();
-    })
+    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleHighlightMode', toggleHighlightMode),
+    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleHighlightModeToModified', toggleHighlightMode),
+    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleHighlightModeToAccess', toggleHighlightMode)
   );
 
   // 註冊指令：清除全部歷史紀錄

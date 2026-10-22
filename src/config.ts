@@ -24,3 +24,18 @@ export async function setColorScheme(value: ColorScheme): Promise<void> {
   const config = vscode.workspace.getConfiguration(SECTION);
   await config.update('colorScheme', value, vscode.ConfigurationTarget.Global);
 }
+
+export async function setShowColorDotIcon(value: boolean): Promise<void> {
+  const config = vscode.workspace.getConfiguration(SECTION);
+  await config.update('showColorDotIcon', value, vscode.ConfigurationTarget.Global);
+}
+
+export async function setStyleNativeExplorer(value: boolean): Promise<void> {
+  const config = vscode.workspace.getConfiguration(SECTION);
+  await config.update('styleNativeExplorer', value, vscode.ConfigurationTarget.Global);
+}
+
+export async function setHighlightMode(value: 'lastAccess' | 'lastModified'): Promise<void> {
+  const config = vscode.workspace.getConfiguration(SECTION);
+  await config.update('highlightMode', value, vscode.ConfigurationTarget.Global);
+}
