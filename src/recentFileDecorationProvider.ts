@@ -27,6 +27,10 @@ export class RecentFileDecorationProvider implements vscode.FileDecorationProvid
     const config = getExtensionConfig();
     const metricTime = getMetricTime(record, config.highlightMode);
 
+    if (config.colorScheme === 'plainText') {
+      return undefined;
+    }
+
     if (config.colorScheme === 'rankSpectrum') {
       const rankInfo = this.manager.getRecordRank(record.fsPath);
       if (rankInfo) {
@@ -53,18 +57,27 @@ export class RecentFileDecorationProvider implements vscode.FileDecorationProvid
 
   public provideFileDecoration(uri: vscode.Uri): vscode.FileDecoration | undefined {
     // 1. 資料夾節點處理：顯示檔案數量，且顏色與該資料夾內第一筆 (最新) 檔案相同
+    const config = getExtensionConfig();
+
     if (uri.scheme === RECENT_FOLDER_SCHEME) {
       const params = new URLSearchParams(uri.query);
       const count = params.get('count') || '';
       const primaryPath = params.get('primary') ? decodeURIComponent(params.get('primary')!) : undefined;
 
+      // Badge 最多限制 2 個字元
+      const safeBadge = count.length > 2 ? '99' : count;
+
+      if (config.colorScheme === 'plainText') {
+        return {
+          badge: safeBadge,
+          tooltip: undefined,
+        };
+      }
+
       let folderColorId: string | undefined;
       if (primaryPath) {
         folderColorId = this.getFileThemeColorId(primaryPath);
       }
-
-      // Badge 最多限制 2 個字元
-      const safeBadge = count.length > 2 ? '99' : count;
 
       return {
         badge: safeBadge,
@@ -72,8 +85,6 @@ export class RecentFileDecorationProvider implements vscode.FileDecorationProvid
         tooltip: undefined,
       };
     }
-
-    const config = getExtensionConfig();
 
     // 2. 原生 Explorer 隔離：未啟用 styleNativeExplorer 時，非自訂 scheme 的項目一律不裝飾
     if (!config.styleNativeExplorer && uri.scheme !== RECENT_SCHEME) {
@@ -107,6 +118,13 @@ export class RecentFileDecorationProvider implements vscode.FileDecorationProvid
     // 超過 2 個字元會導致整份裝飾被 VS Code 作廢拋棄，連帶使彩虹顏色完全消失！
     // 因此 Badge 放置順位號碼 (如 "1", "2", "99"，1~2字元)，保證 100% 合法且絕不被作廢
     const badgeText = rankNumber > 99 ? '99' : String(rankNumber);
+
+    if (config.colorScheme === 'plainText') {
+      return {
+        badge: badgeText,
+        tooltip: undefined,
+      };
+    }
 
     const themeColorId = this.getFileThemeColorId(record.fsPath);
     if (!themeColorId) {

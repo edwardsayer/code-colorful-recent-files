@@ -62,7 +62,7 @@ You can configure the extension using the following settings:
 | `codeColorfulRecentFiles.folderSortOrder` | `string` | `"latest"` | **Folder Sorting**: `"latest"` (most recent file inside), `"name"` (alphabetical A-Z), or `"manual"` (drag and drop order). |
 | `codeColorfulRecentFiles.showColorDotIcon` | `boolean` | `false` | **Color Dot Switch**: Render smooth colored dot icons instead of default file icons. |
 | `codeColorfulRecentFiles.groupByDirectory` | `boolean` | `false` | **Directory Grouping (Legacy)**: Extended by `groupBy`. |
-| `codeColorfulRecentFiles.colorScheme` | `string` | `"rankSpectrum"` | **Color Scheme**: `"rankSpectrum"` (smooth rainbow spectrum) or `"timeBucket"` (time step intervals). |
+| `codeColorfulRecentFiles.colorScheme` | `string` | `"rankSpectrum"` | **Color Scheme**: `"rankSpectrum"` (smooth rainbow spectrum), `"timeBucket"` (time step intervals), or `"plainText"` (neutral text mode without heat colors, retains color dot icons). |
 | `codeColorfulRecentFiles.styleNativeExplorer` | `boolean` | `false` | **Native Explorer Styling**: Apply colorful decorations to the native VS Code Explorer as well (default false for clean separation). |
 | `codeColorfulRecentFiles.maxRecentFiles` | `number` | `50` | **History Limit**: Maximum number of recent files to retain (5 ~ 500). |
 | `codeColorfulRecentFiles.highlightMode` | `string` | `"lastAccess"` | **Time Metric**: `"lastAccess"` (open/focus) or `"lastModified"` (edit/save). |

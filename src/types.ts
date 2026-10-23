@@ -19,7 +19,7 @@ export enum HeatmapLevel {
 }
 
 /** 色彩標記配置模式 */
-export type ColorScheme = 'timeBucket' | 'rankSpectrum';
+export type ColorScheme = 'timeBucket' | 'rankSpectrum' | 'plainText';
 
 /** 分組模式：平鋪清單、依目錄分組、依檔案類型分組 */
 export type GroupByMode = 'none' | 'directory' | 'type';

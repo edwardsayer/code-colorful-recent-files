@@ -159,9 +159,11 @@ export class RecentFilesManager {
   }
 
   /** 保存資料夾手動排序順序清單 */
-  public async setFolderManualOrder(order: string[]): Promise<void> {
+  public async setFolderManualOrder(order: string[], fireEvent = true): Promise<void> {
     await this.context.workspaceState.update('codeColorfulRecentFiles.folderManualOrder', order);
-    this._onDidChangeRecentFiles.fire();
+    if (fireEvent) {
+      this._onDidChangeRecentFiles.fire();
+    }
   }
 
   /** 關閉對應路徑的 VS Code Open Tab */

@@ -11,6 +11,7 @@
   "command.colorScheme.title": "配色方案",
   "command.colorScheme.rank": "配色方案  🌈 彩虹光譜",
   "command.colorScheme.bucket": "配色方案  ⏱️ 時間階梯",
+  "command.colorScheme.plainText": "配色方案  📄 純文字 (Plain Text)",
   "command.showColorDotIcon.on": "色彩小圓點圖示  🔴",
   "command.showColorDotIcon.off": "色彩小圓點圖示",
   "command.styleNativeExplorer.title": "裝飾原生檔案總管",

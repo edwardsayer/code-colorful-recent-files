@@ -62,7 +62,7 @@
 | `codeColorfulRecentFiles.folderSortOrder` | `string` | `"latest"` | **資料夾排序方式**：`"latest"` (最新優先)、`"name"` (名稱 A-Z) 或 `"manual"` (手動拖曳順序)。 |
 | `codeColorfulRecentFiles.showColorDotIcon` | `boolean` | `false` | **色彩小圓點開關**：是否以色彩向量圓點取代預設檔案圖示。 |
 | `codeColorfulRecentFiles.groupByDirectory` | `boolean` | `false` | **依目錄分組 (相容舊設定)**：已由 `groupBy` 擴充。 |
-| `codeColorfulRecentFiles.colorScheme` | `string` | `"rankSpectrum"` | **色彩方案**：`"rankSpectrum"`（彩虹順位連續光譜）或 `"timeBucket"`（時間階梯分級）。 |
+| `codeColorfulRecentFiles.colorScheme` | `string` | `"rankSpectrum"` | **色彩方案**：`"rankSpectrum"` (彩虹順位連續光譜)、`"timeBucket"` (時間階梯分級) 或 `"plainText"` (純文字中性模式，文字/序號/檔案數不著色，不影響彩色圓點)。 |
 | `codeColorfulRecentFiles.styleNativeExplorer` | `boolean` | `false` | **原生總管裝飾**：是否將色彩裝飾與標注同時套用至 VS Code 原生檔案總管。預設關閉以維持原生總管清爽。 |
 | `codeColorfulRecentFiles.maxRecentFiles` | `number` | `50` | **最大追蹤筆數**：工作區內保留的最大最近檔案筆數（5 ~ 500）。 |
 | `codeColorfulRecentFiles.highlightMode` | `string` | `"lastAccess"` | **熱度時間基準**：`"lastAccess"`（切換/存取時間）或 `"lastModified"`（編輯/儲存時間）。 |

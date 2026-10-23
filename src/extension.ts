@@ -155,18 +155,40 @@ export function activate(context: vscode.ExtensionContext): void {
     })
   );
 
-  // 註冊指令：切換配色方案 (支援做法 B：尾端狀態標籤)
-  const toggleColorScheme = async () => {
+  // 註冊指令：切換配色方案 (彩虹順位 rankSpectrum -> 時間階梯 timeBucket -> 純文字 plainText)
+  const cycleColorScheme = async () => {
     const config = getExtensionConfig();
-    const nextScheme = config.colorScheme === 'rankSpectrum' ? 'timeBucket' : 'rankSpectrum';
+    let nextScheme: 'rankSpectrum' | 'timeBucket' | 'plainText' = 'rankSpectrum';
+    if (config.colorScheme === 'rankSpectrum') {
+      nextScheme = 'timeBucket';
+    } else if (config.colorScheme === 'timeBucket') {
+      nextScheme = 'plainText';
+    } else {
+      nextScheme = 'rankSpectrum';
+    }
     await setColorScheme(nextScheme);
     treeDataProvider.refresh();
     decorationProvider.fireChange();
   };
   context.subscriptions.push(
-    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleColorScheme', toggleColorScheme),
-    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleColorSchemeRank', toggleColorScheme),
-    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleColorSchemeBucket', toggleColorScheme)
+    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleColorScheme', cycleColorScheme),
+    vscode.commands.registerCommand('codeColorfulRecentFiles.setColorSchemeRank', async () => {
+      await setColorScheme('rankSpectrum');
+      treeDataProvider.refresh();
+      decorationProvider.fireChange();
+    }),
+    vscode.commands.registerCommand('codeColorfulRecentFiles.setColorSchemeBucket', async () => {
+      await setColorScheme('timeBucket');
+      treeDataProvider.refresh();
+      decorationProvider.fireChange();
+    }),
+    vscode.commands.registerCommand('codeColorfulRecentFiles.setColorSchemePlainText', async () => {
+      await setColorScheme('plainText');
+      treeDataProvider.refresh();
+      decorationProvider.fireChange();
+    }),
+    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleColorSchemeRank', cycleColorScheme),
+    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleColorSchemeBucket', cycleColorScheme)
   );
 
   // 註冊指令：切換色彩小圓點圖示 (支援做法 C：尾端簡潔勾選符號)

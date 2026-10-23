@@ -167,6 +167,21 @@
         "title": "%command.toggleGroupByDirectory.off%",
         "category": "%category.recentFiles%"
       },
+       {
+        "command": "codeColorfulRecentFiles.setColorSchemeRank",
+        "title": "%command.colorScheme.rank%",
+        "category": "%category.recentFiles%"
+      },
+      {
+        "command": "codeColorfulRecentFiles.setColorSchemeBucket",
+        "title": "%command.colorScheme.bucket%",
+        "category": "%category.recentFiles%"
+      },
+      {
+        "command": "codeColorfulRecentFiles.setColorSchemePlainText",
+        "title": "%command.colorScheme.plainText%",
+        "category": "%category.recentFiles%"
+      },
       {
         "command": "codeColorfulRecentFiles.toggleColorSchemeRank",
         "title": "%command.colorScheme.rank%",
@@ -273,13 +288,18 @@
           "group": "1_options@3"
         },
         {
-          "command": "codeColorfulRecentFiles.toggleColorSchemeRank",
+          "command": "codeColorfulRecentFiles.setColorSchemeBucket",
           "when": "view == codeColorfulRecentFiles.recentView && config.codeColorfulRecentFiles.colorScheme == 'rankSpectrum'",
           "group": "1_options@4"
         },
         {
-          "command": "codeColorfulRecentFiles.toggleColorSchemeBucket",
-          "when": "view == codeColorfulRecentFiles.recentView && config.codeColorfulRecentFiles.colorScheme != 'rankSpectrum'",
+          "command": "codeColorfulRecentFiles.setColorSchemePlainText",
+          "when": "view == codeColorfulRecentFiles.recentView && config.codeColorfulRecentFiles.colorScheme == 'timeBucket'",
+          "group": "1_options@4"
+        },
+        {
+          "command": "codeColorfulRecentFiles.setColorSchemeRank",
+          "when": "view == codeColorfulRecentFiles.recentView && config.codeColorfulRecentFiles.colorScheme == 'plainText'",
           "group": "1_options@4"
         },
         {
@@ -363,7 +383,8 @@
           "type": "string",
           "enum": [
             "rankSpectrum",
-            "timeBucket"
+            "timeBucket",
+            "plainText"
           ],
           "default": "rankSpectrum",
           "description": "%configuration.colorScheme.description%"

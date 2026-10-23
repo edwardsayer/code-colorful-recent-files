@@ -11,6 +11,7 @@
   "command.colorScheme.title": "Color Scheme",
   "command.colorScheme.rank": "Color Scheme  🌈 Rainbow Spectrum",
   "command.colorScheme.bucket": "Color Scheme  ⏱️ Time Buckets",
+  "command.colorScheme.plainText": "Color Scheme  📄 Plain Text",
   "command.showColorDotIcon.on": "Color Dot Icons  🔴",
   "command.showColorDotIcon.off": "Color Dot Icons",
   "command.styleNativeExplorer.title": "Style Native Explorer",

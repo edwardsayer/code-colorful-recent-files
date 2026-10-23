@@ -74,7 +74,7 @@ export class RecentTreeDataProvider implements vscode.TreeDataProvider<RecentTre
 
     // 只有在使用者明確勾選 showColorDotIcon 時，才顯示色彩小圓點，預設維持原生檔案主題圖示
     if (config.showColorDotIcon) {
-      if (config.colorScheme === 'rankSpectrum') {
+      if (config.colorScheme === 'rankSpectrum' || config.colorScheme === 'plainText') {
         if (rankInfo) {
           const { rank, total } = rankInfo;
           const t = total > 1 ? rank / (total - 1) : 0;
@@ -215,16 +215,20 @@ export class RecentTreeDataProvider implements vscode.TreeDataProvider<RecentTre
         folderElements.sort((a, b) => a.folderName.localeCompare(b.folderName));
       } else if (config.folderSortOrder === 'manual') {
         const manualOrder = this.manager.getFolderManualOrder();
+        // 補充尚未登記在 manualOrder 中的資料夾 (確保每個 folderKey 皆有固定 index，點擊檔案絕不跳動)
+        const missingKeys = folderElements.filter((f) => !manualOrder.includes(f.folderKey)).map((f) => f.folderKey);
+        if (missingKeys.length > 0) {
+          manualOrder.push(...missingKeys);
+          this.manager.setFolderManualOrder(manualOrder, false);
+        }
+
         folderElements.sort((a, b) => {
           const idxA = manualOrder.indexOf(a.folderKey);
           const idxB = manualOrder.indexOf(b.folderKey);
           if (idxA !== -1 && idxB !== -1) return idxA - idxB;
           if (idxA !== -1) return -1;
           if (idxB !== -1) return 1;
-          // 保底依照各組最新檔案時間降序
-          const timeA = a.files[0] ? Math.max(a.files[0].lastOpenedTime || 0, a.files[0].lastModifiedTime || 0) : 0;
-          const timeB = b.files[0] ? Math.max(b.files[0].lastOpenedTime || 0, b.files[0].lastModifiedTime || 0) : 0;
-          return timeB - timeA;
+          return a.folderKey.localeCompare(b.folderKey);
         });
       } else {
         // 'latest' (預設)：依各資料夾最新活動時間由新到舊排序
