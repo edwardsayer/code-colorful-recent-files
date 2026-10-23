@@ -12,6 +12,7 @@ import {
 } from './types';
 import { createColorDotSvgDataUri, interpolateRainbow } from './util/color';
 import { calculateHeatmapLevel, formatRelativeTime, getMetricTime } from './util/time';
+import { getFileTypeGroup } from './util/typeGroup';
 
 export class RecentTreeDataProvider implements vscode.TreeDataProvider<RecentTreeElement> {
   private readonly _onDidChangeTreeData = new vscode.EventEmitter<RecentTreeElement | undefined | null | void>();
@@ -41,8 +42,10 @@ export class RecentTreeDataProvider implements vscode.TreeDataProvider<RecentTre
       const item = new vscode.TreeItem(viewFolderUri, vscode.TreeItemCollapsibleState.Expanded);
       item.label = element.folderName;
       item.description = undefined;
-      // Hint (Tooltip) 顯示完整絕對路徑
-      item.tooltip = element.folderAbsolutePath;
+      // Hint (Tooltip)
+      item.tooltip = element.groupKind === 'type'
+        ? `${element.folderName} (${element.files.length} items)`
+        : element.folderAbsolutePath;
       item.contextValue = 'folderItem';
 
       return item;
@@ -114,70 +117,123 @@ export class RecentTreeDataProvider implements vscode.TreeDataProvider<RecentTre
 
   public getChildren(element?: RecentTreeElement): vscode.ProviderResult<RecentTreeElement[]> {
     const config = getExtensionConfig();
-    const records = this.manager.getRecords();
+    const records = this.manager.getVisibleRecords();
 
     if (!element) {
-      // 根層級
-      if (!config.groupByDirectory) {
-        // 扁平模式：直接回傳所有檔案 (已由 manager 按最新時間由新到舊排序)
+      // 根層級：平鋪模式
+      if (config.groupBy === 'none') {
         return records.map((record) => ({
           kind: 'file',
           record,
         }));
       }
 
-      // 目錄分組模式：依上層目錄分組
-      const groups = new Map<string, { folderAbsolutePath: string; files: RecentFileRecord[] }>();
-      for (const record of records) {
-        const fileDir = path.dirname(record.fsPath);
-        const folderKey = fileDir.toLowerCase();
+      const folderElements: RecentFolderElement[] = [];
 
-        const group = groups.get(folderKey);
-        if (group) {
-          group.files.push(record);
-        } else {
-          groups.set(folderKey, {
-            folderAbsolutePath: fileDir,
-            files: [record],
+      if (config.groupBy === 'type') {
+        // 依檔案類型 (副檔名大寫) 分組
+        const typeGroups = new Map<string, RecentFileRecord[]>();
+        for (const record of records) {
+          const typeName = getFileTypeGroup(record.fsPath);
+          const list = typeGroups.get(typeName);
+          if (list) {
+            list.push(record);
+          } else {
+            typeGroups.set(typeName, [record]);
+          }
+        }
+
+        for (const [typeName, files] of typeGroups.entries()) {
+          const sortedFiles = [...files].sort((a, b) => {
+            const timeA = Math.max(a.lastOpenedTime || 0, a.lastModifiedTime || 0);
+            const timeB = Math.max(b.lastOpenedTime || 0, b.lastModifiedTime || 0);
+            return timeB - timeA;
+          });
+          const primaryFile = sortedFiles[0];
+
+          folderElements.push({
+            kind: 'folder',
+            groupKind: 'type',
+            folderKey: `type:${typeName}`,
+            folderPath: typeName,
+            folderAbsolutePath: primaryFile ? primaryFile.fsPath : typeName,
+            folderName: typeName,
+            files: sortedFiles,
+            primaryFileFsPath: primaryFile?.fsPath,
+          });
+        }
+      } else {
+        // 依目錄分組 (groupBy === 'directory')
+        const dirGroups = new Map<string, { folderAbsolutePath: string; files: RecentFileRecord[] }>();
+        for (const record of records) {
+          const fileDir = path.dirname(record.fsPath);
+          const folderKey = fileDir.toLowerCase();
+
+          const group = dirGroups.get(folderKey);
+          if (group) {
+            group.files.push(record);
+          } else {
+            dirGroups.set(folderKey, {
+              folderAbsolutePath: fileDir,
+              files: [record],
+            });
+          }
+        }
+
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        const workspaceRoot = workspaceFolders && workspaceFolders.length > 0 ? workspaceFolders[0].uri.fsPath : undefined;
+
+        for (const group of dirGroups.values()) {
+          const absDir = group.folderAbsolutePath;
+          let shortName = path.basename(absDir);
+
+          if (workspaceRoot && path.normalize(absDir).toLowerCase() === path.normalize(workspaceRoot).toLowerCase()) {
+            shortName = '工作區根目錄';
+          }
+
+          const sortedFiles = [...group.files].sort((a, b) => {
+            const timeA = Math.max(a.lastOpenedTime || 0, a.lastModifiedTime || 0);
+            const timeB = Math.max(b.lastOpenedTime || 0, b.lastModifiedTime || 0);
+            return timeB - timeA;
+          });
+
+          folderElements.push({
+            kind: 'folder',
+            groupKind: 'directory',
+            folderKey: `dir:${absDir.toLowerCase()}`,
+            folderPath: workspaceRoot ? path.relative(workspaceRoot, absDir) || '.' : absDir,
+            folderAbsolutePath: absDir,
+            folderName: shortName || absDir,
+            files: sortedFiles,
+            primaryFileFsPath: sortedFiles[0]?.fsPath,
           });
         }
       }
 
-      const folderElements: RecentFolderElement[] = [];
-      const workspaceFolders = vscode.workspace.workspaceFolders;
-      const workspaceRoot = workspaceFolders && workspaceFolders.length > 0 ? workspaceFolders[0].uri.fsPath : undefined;
-
-      for (const group of groups.values()) {
-        const absDir = group.folderAbsolutePath;
-        let shortName = path.basename(absDir);
-
-        if (workspaceRoot && path.normalize(absDir).toLowerCase() === path.normalize(workspaceRoot).toLowerCase()) {
-          shortName = '工作區根目錄';
-        }
-
-        // 該資料夾內的檔案按時間倒序排序，第一筆即為最新活動檔案
-        const sortedFiles = [...group.files].sort((a, b) => {
-          const timeA = Math.max(a.lastOpenedTime || 0, a.lastModifiedTime || 0);
-          const timeB = Math.max(b.lastOpenedTime || 0, b.lastModifiedTime || 0);
+      // 三重排序調度器：latest / name / manual
+      if (config.folderSortOrder === 'name') {
+        folderElements.sort((a, b) => a.folderName.localeCompare(b.folderName));
+      } else if (config.folderSortOrder === 'manual') {
+        const manualOrder = this.manager.getFolderManualOrder();
+        folderElements.sort((a, b) => {
+          const idxA = manualOrder.indexOf(a.folderKey);
+          const idxB = manualOrder.indexOf(b.folderKey);
+          if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+          if (idxA !== -1) return -1;
+          if (idxB !== -1) return 1;
+          // 保底依照各組最新檔案時間降序
+          const timeA = a.files[0] ? Math.max(a.files[0].lastOpenedTime || 0, a.files[0].lastModifiedTime || 0) : 0;
+          const timeB = b.files[0] ? Math.max(b.files[0].lastOpenedTime || 0, b.files[0].lastModifiedTime || 0) : 0;
           return timeB - timeA;
         });
-
-        folderElements.push({
-          kind: 'folder',
-          folderPath: workspaceRoot ? path.relative(workspaceRoot, absDir) || '.' : absDir,
-          folderAbsolutePath: absDir,
-          folderName: shortName || absDir,
-          files: sortedFiles,
-          primaryFileFsPath: sortedFiles[0]?.fsPath,
+      } else {
+        // 'latest' (預設)：依各資料夾最新活動時間由新到舊排序
+        folderElements.sort((a, b) => {
+          const timeA = a.files[0] ? Math.max(a.files[0].lastOpenedTime || 0, a.files[0].lastModifiedTime || 0) : 0;
+          const timeB = b.files[0] ? Math.max(b.files[0].lastOpenedTime || 0, b.files[0].lastModifiedTime || 0) : 0;
+          return timeB - timeA;
         });
       }
-
-      // ★ 核心修復：資料夾依該目錄內最新檔案活動時間由新到舊排序！絕不用字母排序！
-      folderElements.sort((a, b) => {
-        const timeA = a.files[0] ? Math.max(a.files[0].lastOpenedTime || 0, a.files[0].lastModifiedTime || 0) : 0;
-        const timeB = b.files[0] ? Math.max(b.files[0].lastOpenedTime || 0, b.files[0].lastModifiedTime || 0) : 0;
-        return timeB - timeA;
-      });
 
       return folderElements;
     }

@@ -21,16 +21,24 @@ export enum HeatmapLevel {
 /** 色彩標記配置模式 */
 export type ColorScheme = 'timeBucket' | 'rankSpectrum';
 
+/** 分組模式：平鋪清單、依目錄分組、依檔案類型分組 */
+export type GroupByMode = 'none' | 'directory' | 'type';
+
+/** 資料夾排序模式：最新活動在前、依名稱字母排序、手動拉曳排序 */
+export type FolderSortOrder = 'latest' | 'name' | 'manual';
+
 /** 樹狀節點項目 */
 export type RecentTreeElement = RecentFolderElement | RecentFileElement;
 
 export interface RecentFolderElement {
   kind: 'folder';
-  folderPath: string;         // 相對工作區或目錄路徑
-  folderAbsolutePath: string; // 完整絕對路徑
-  folderName: string;
+  groupKind: 'directory' | 'type'; // 標記是實體目錄還是檔案類型
+  folderKey: string;               // 唯一排序與辨識 key (如 "dir:/path" 或 "type:TS")
+  folderPath: string;              // 相對工作區或目錄路徑 (或類型名稱)
+  folderAbsolutePath: string;      // 完整絕對路徑
+  folderName: string;              // 顯示名稱 (如目錄名或大寫副檔名 'TS')
   files: RecentFileRecord[];
-  primaryFileFsPath?: string; // 該資料夾中排序第一 (最新) 的檔案路徑
+  primaryFileFsPath?: string;      // 該資料夾中排序第一 (最新) 的檔案路徑
 }
 
 export interface RecentFileElement {
@@ -41,10 +49,13 @@ export interface RecentFileElement {
 
 /** 擴充套件設定型別 */
 export interface ExtensionConfig {
-  groupByDirectory: boolean;
+  groupBy: GroupByMode;
+  groupByDirectory: boolean;       // 向後相容旗標
   maxRecentFiles: number;
   highlightMode: 'lastAccess' | 'lastModified';
   colorScheme: ColorScheme;
   showColorDotIcon: boolean;
   styleNativeExplorer: boolean;
+  syncWithOpenTabs: boolean;
+  folderSortOrder: FolderSortOrder;
 }

@@ -9,7 +9,17 @@
 ## 核心功能
 
 - 🕒 **自動追蹤活動記錄**：即時感應用戶切換編輯器、開啟檔案以及編輯／存檔操作。
-- 📁 **依目錄分組切換**：在面板右上角選單一鍵切換「時間順序扁平清單」與「階層式目錄樹狀分組」（選單內建原生 Checked ✔ 核取狀態標示）。
+- 📁 **三種分組模式（平鋪／目錄／副檔名）**：
+  - **平鋪（Flat）**：依時間順序直觀排列。
+  - **依目錄分組（Directory）**：依上層目錄階層呈現樹狀分組。
+  - **依類型分組（Type / Extension）**：依檔案副檔名或視圖類型歸類（如 `TS`, `JSON`, `MD`, `OTHER`），以資料夾呈現並自動轉為全大寫。
+- 📑 **同步開啟分頁（Vertical Tabs 模式）**：
+  - 開啟時**僅呈現目前編輯器開啟的分頁**，即時作為垂直分頁清單使用。
+  - 當分頁在編輯器中關閉或在樹狀清單中點擊關閉按鈕時，自動從清單隱藏並連動關閉分頁；**注意：此操作純屬視圖過濾，不會抹除底層持久化存取歷史**，關閉同步時即可完整還原全量歷史。
+- 🔀 **多元資料夾排序與拖曳重排**：
+  - **最新優先（Latest First）**：預設依組內最新檔案的存取時間排序。
+  - **名稱字母（By Name）**：依資料夾／類別名稱字母（A-Z）排序。
+  - **手動拖曳（Manual Drag & Drop）**：可直接在樹狀檢視中拖曳資料夾節點調整順序。
 - 🎨 **依時間色彩標記 (Heatmap)**：結合 VS Code 原生 `FileDecoration`，根據時間距離套用標準主題色：
   - **最新熱門 (< 15 分鐘)**：`charts.green`（鮮綠色）搭配 `●` 徽章
   - **本日近期 (< 2 小時)**：`charts.yellow`（亮黃色）搭配 `1h` 徽章
@@ -47,8 +57,11 @@
 
 | 設定項目 | 型別 | 預設值 | 說明 |
 | :--- | :--- | :--- | :--- |
+| `codeColorfulRecentFiles.groupBy` | `string` | `"none"` | **分組模式**：`"none"` (平鋪清單)、`"directory"` (依目錄階層分組) 或 `"type"` (依大寫副檔名字母分組)。 |
+| `codeColorfulRecentFiles.syncWithOpenTabs` | `boolean` | `false` | **同步開啟分頁**：是否僅顯示當前編輯器開啟的分頁（垂直分頁 Vertical Tabs 模式）。 |
+| `codeColorfulRecentFiles.folderSortOrder` | `string` | `"latest"` | **資料夾排序方式**：`"latest"` (最新優先)、`"name"` (名稱 A-Z) 或 `"manual"` (手動拖曳順序)。 |
 | `codeColorfulRecentFiles.showColorDotIcon` | `boolean` | `false` | **色彩小圓點開關**：是否以色彩向量圓點取代預設檔案圖示。 |
-| `codeColorfulRecentFiles.groupByDirectory` | `boolean` | `false` | **依目錄分組**：在樹狀檢視中依上層目錄階層呈現最近檔案。 |
+| `codeColorfulRecentFiles.groupByDirectory` | `boolean` | `false` | **依目錄分組 (相容舊設定)**：已由 `groupBy` 擴充。 |
 | `codeColorfulRecentFiles.colorScheme` | `string` | `"rankSpectrum"` | **色彩方案**：`"rankSpectrum"`（彩虹順位連續光譜）或 `"timeBucket"`（時間階梯分級）。 |
 | `codeColorfulRecentFiles.styleNativeExplorer` | `boolean` | `false` | **原生總管裝飾**：是否將色彩裝飾與標注同時套用至 VS Code 原生檔案總管。預設關閉以維持原生總管清爽。 |
 | `codeColorfulRecentFiles.maxRecentFiles` | `number` | `50` | **最大追蹤筆數**：工作區內保留的最大最近檔案筆數（5 ~ 500）。 |

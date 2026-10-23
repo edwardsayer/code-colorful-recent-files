@@ -14,6 +14,8 @@ export { normalizePathKey };
 export class RecentFilesManager {
   private recordsMap = new Map<string, RecentFileRecord>();
   private sortedCache: RecentFileRecord[] | null = null;
+  /** 記憶體中追蹤當前所有開啟的 tabs 本機路徑 key */
+  private openTabsSet = new Set<string>();
   private readonly _onDidChangeRecentFiles = new vscode.EventEmitter<void>();
   public readonly onDidChangeRecentFiles = this._onDidChangeRecentFiles.event;
 
@@ -136,9 +138,56 @@ export class RecentFilesManager {
     }
   }
 
-  /** 取得該檔案在最新到最舊列表中的順位與總數 (0-indexed) */
+  /** 取得視圖中可見的檔案紀錄 (支援 Sync with Open Tabs 過濾，但持久化歷史完整保留) */
+  public getVisibleRecords(): RecentFileRecord[] {
+    const all = this.getRecords();
+    const config = getExtensionConfig();
+    if (config.syncWithOpenTabs) {
+      return all.filter((r) => this.openTabsSet.has(normalizePathKey(r.fsPath)));
+    }
+    return all;
+  }
+
+  /** 檢查特定路徑是否在當前開啟的 tabs 之中 */
+  public isOpenTab(fsPath: string): boolean {
+    return this.openTabsSet.has(normalizePathKey(fsPath));
+  }
+
+  /** 取得資料夾手動排序順序清單 */
+  public getFolderManualOrder(): string[] {
+    return this.context.workspaceState.get<string[]>('codeColorfulRecentFiles.folderManualOrder') || [];
+  }
+
+  /** 保存資料夾手動排序順序清單 */
+  public async setFolderManualOrder(order: string[]): Promise<void> {
+    await this.context.workspaceState.update('codeColorfulRecentFiles.folderManualOrder', order);
+    this._onDidChangeRecentFiles.fire();
+  }
+
+  /** 關閉對應路徑的 VS Code Open Tab */
+  public async closeTabForFile(fsPath: string): Promise<void> {
+    const targetKey = normalizePathKey(fsPath);
+    const tabsToClose: vscode.Tab[] = [];
+    try {
+      for (const group of vscode.window.tabGroups.all) {
+        for (const tab of group.tabs) {
+          const uri = this.extractTabUri(tab);
+          if (uri && normalizePathKey(uri.fsPath) === targetKey) {
+            tabsToClose.push(tab);
+          }
+        }
+      }
+      if (tabsToClose.length > 0) {
+        await vscode.window.tabGroups.close(tabsToClose);
+      }
+    } catch (err) {
+      logError('Failed to close tab for file: ' + fsPath, err);
+    }
+  }
+
+  /** 取得該檔案在可見清單中的順位與總數 (0-indexed) */
   public getRecordRank(fsPath: string): { rank: number; total: number } | undefined {
-    const records = this.getRecords();
+    const records = this.getVisibleRecords();
     const targetKey = normalizePathKey(fsPath);
     const index = records.findIndex((r) => normalizePathKey(r.fsPath) === targetKey);
     if (index === -1) {
@@ -148,7 +197,7 @@ export class RecentFilesManager {
   }
 
   /** 主動置頂特定檔案 (點擊即時刷新) */
-  public async touchFile(fsPath: string): Promise<void> {
+  public async touchFile(fsPath: string, fireEvent = true): Promise<void> {
     const key = normalizePathKey(fsPath);
     const now = Date.now();
     let record = this.recordsMap.get(key);
@@ -168,7 +217,9 @@ export class RecentFilesManager {
 
     this.sortedCache = null;
     await this.saveToStorage();
-    this._onDidChangeRecentFiles.fire();
+    if (fireEvent) {
+      this._onDidChangeRecentFiles.fire();
+    }
   }
 
   public async recordAccess(uri: vscode.Uri, kind: 'open' | 'modify'): Promise<void> {
@@ -264,12 +315,31 @@ export class RecentFilesManager {
     return undefined;
   }
 
+  /** 檢查特定檔案是否仍於任一分頁群組中開啟 */
+  private isFileStillOpenInAnyGroup(fsPath: string): boolean {
+    const targetKey = normalizePathKey(fsPath);
+    for (const group of vscode.window.tabGroups.all) {
+      for (const tab of group.tabs) {
+        const uri = this.extractTabUri(tab);
+        if (uri && normalizePathKey(uri.fsPath) === targetKey) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   private scanInitialTabs(): void {
     try {
-      const activeTab = vscode.window.tabGroups.activeTabGroup?.activeTab;
-      if (activeTab) {
-        const uri = this.extractTabUri(activeTab);
-        if (uri) this.recordAccess(uri, 'open');
+      this.openTabsSet.clear();
+      for (const group of vscode.window.tabGroups.all) {
+        for (const tab of group.tabs) {
+          const uri = this.extractTabUri(tab);
+          if (uri && uri.scheme === 'file') {
+            this.openTabsSet.add(normalizePathKey(uri.fsPath));
+            this.touchFile(uri.fsPath, false);
+          }
+        }
       }
     } catch {
       // 忽略
@@ -280,18 +350,39 @@ export class RecentFilesManager {
     // 1. 活躍編輯器切換 (文字編輯器)
     this.context.subscriptions.push(
       vscode.window.onDidChangeActiveTextEditor((editor) => {
-        if (editor?.document) {
+        if (editor?.document && editor.document.uri.scheme === 'file') {
+          this.openTabsSet.add(normalizePathKey(editor.document.uri.fsPath));
           this.recordAccess(editor.document.uri, 'open');
         }
       })
     );
 
-    // 2. Tab 分頁事件監聽 (★ 支援圖像檔、CustomEditor 與任何二進位編輯器)
+    // 2. Tab 分頁事件監聽 (★ 支援圖像檔、CustomEditor 與任何二進位編輯器，以及開啟/關閉雙向同步)
     this.context.subscriptions.push(
       vscode.window.tabGroups.onDidChangeTabs((e) => {
+        let changed = false;
         for (const tab of e.opened) {
           const uri = this.extractTabUri(tab);
-          if (uri) this.recordAccess(uri, 'open');
+          if (uri && uri.scheme === 'file') {
+            const key = normalizePathKey(uri.fsPath);
+            if (!this.openTabsSet.has(key)) {
+              this.openTabsSet.add(key);
+              changed = true;
+            }
+            this.recordAccess(uri, 'open');
+          }
+        }
+        for (const tab of e.closed) {
+          const uri = this.extractTabUri(tab);
+          if (uri && uri.scheme === 'file') {
+            if (!this.isFileStillOpenInAnyGroup(uri.fsPath)) {
+              this.openTabsSet.delete(normalizePathKey(uri.fsPath));
+              changed = true;
+            }
+          }
+        }
+        if (changed) {
+          this._onDidChangeRecentFiles.fire();
         }
       })
     );
@@ -301,7 +392,10 @@ export class RecentFilesManager {
         const activeTab = vscode.window.tabGroups.activeTabGroup?.activeTab;
         if (activeTab) {
           const uri = this.extractTabUri(activeTab);
-          if (uri) this.recordAccess(uri, 'open');
+          if (uri && uri.scheme === 'file') {
+            this.openTabsSet.add(normalizePathKey(uri.fsPath));
+            this.recordAccess(uri, 'open');
+          }
         }
       })
     );
@@ -309,7 +403,10 @@ export class RecentFilesManager {
     // 3. 文件開啟
     this.context.subscriptions.push(
       vscode.workspace.onDidOpenTextDocument((doc) => {
-        this.recordAccess(doc.uri, 'open');
+        if (doc.uri.scheme === 'file') {
+          this.openTabsSet.add(normalizePathKey(doc.uri.fsPath));
+          this.recordAccess(doc.uri, 'open');
+        }
       })
     );
 

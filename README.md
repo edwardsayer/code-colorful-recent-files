@@ -9,7 +9,17 @@ A focused VS Code extension that presents your recently opened and edited files 
 ## Features
 
 - 🕒 **Track Recent Files Automatically**: Intelligently monitors active editor switches, opened documents, and saved modifications.
-- 📁 **Group by Directory**: Toggle between a flat chronological list and a grouped directory tree from the view header menu (with native checked checkmark indicator).
+- 📁 **Three Grouping Modes (Flat / Directory / Type)**:
+  - **Flat**: Chronological recent files list.
+  - **Directory**: Hierarchical tree grouped by folder paths.
+  - **Type (Extension)**: Grouped by file extensions or view types in uppercase (e.g. `TS`, `JSON`, `MD`, `OTHER`).
+- 📑 **Sync with Open Tabs (Vertical Tabs Mode)**:
+  - When enabled, **only displays currently opened editor tabs**, effectively serving as a fast vertical tabs sidebar.
+  - Closing tabs in the editor or removing them from the tree will hide them from the view and close the editor tab; **historical access logs are safely preserved** and fully restored when turning sync off.
+- 🔀 **Flexible Folder Sorting & Drag-and-Drop**:
+  - **Latest First**: Ordered by the most recent file recency within each folder.
+  - **By Name**: Alphabetical folder name order (A-Z).
+  - **Manual (Drag & Drop)**: Reorder folder groups directly via drag-and-drop in the treeview.
 - 🎨 **Time-based Color Decorations**: Native `FileDecoration` integration maps file recency to standard theme colors:
   - **Fresh (< 15 mins)**: `charts.green` with `●` badge
   - **Warm (< 2 hours)**: `charts.yellow` with `1h` badge
@@ -47,8 +57,11 @@ You can configure the extension using the following settings:
 
 | Setting | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
+| `codeColorfulRecentFiles.groupBy` | `string` | `"none"` | **Grouping Mode**: `"none"` (flat list), `"directory"` (hierarchical directory grouping), or `"type"` (uppercase file extension groups). |
+| `codeColorfulRecentFiles.syncWithOpenTabs` | `boolean` | `false` | **Sync with Open Tabs**: Show only currently open editor tabs (Vertical Tabs mode). |
+| `codeColorfulRecentFiles.folderSortOrder` | `string` | `"latest"` | **Folder Sorting**: `"latest"` (most recent file inside), `"name"` (alphabetical A-Z), or `"manual"` (drag and drop order). |
 | `codeColorfulRecentFiles.showColorDotIcon` | `boolean` | `false` | **Color Dot Switch**: Render smooth colored dot icons instead of default file icons. |
-| `codeColorfulRecentFiles.groupByDirectory` | `boolean` | `false` | **Directory Grouping**: Group recent files under their parent directory hierarchy. |
+| `codeColorfulRecentFiles.groupByDirectory` | `boolean` | `false` | **Directory Grouping (Legacy)**: Extended by `groupBy`. |
 | `codeColorfulRecentFiles.colorScheme` | `string` | `"rankSpectrum"` | **Color Scheme**: `"rankSpectrum"` (smooth rainbow spectrum) or `"timeBucket"` (time step intervals). |
 | `codeColorfulRecentFiles.styleNativeExplorer` | `boolean` | `false` | **Native Explorer Styling**: Apply colorful decorations to the native VS Code Explorer as well (default false for clean separation). |
 | `codeColorfulRecentFiles.maxRecentFiles` | `number` | `50` | **History Limit**: Maximum number of recent files to retain (5 ~ 500). |

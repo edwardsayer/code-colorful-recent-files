@@ -2,7 +2,7 @@
   "name": "code-colorful-recent-files",
   "displayName": "%extension.displayName%",
   "description": "%extension.description%",
-  "version": "0.1.7",
+  "version": "0.2.0",
   "publisher": "edwardsayer",
   "icon": "assets/icon.png",
   "license": "MIT",
@@ -118,6 +118,46 @@
         "category": "%category.recentFiles%"
       },
       {
+        "command": "codeColorfulRecentFiles.setGroupByNone",
+        "title": "%command.groupBy.none%",
+        "category": "%category.recentFiles%"
+      },
+      {
+        "command": "codeColorfulRecentFiles.setGroupByDirectory",
+        "title": "%command.groupBy.directory%",
+        "category": "%category.recentFiles%"
+      },
+      {
+        "command": "codeColorfulRecentFiles.setGroupByType",
+        "title": "%command.groupBy.type%",
+        "category": "%category.recentFiles%"
+      },
+      {
+        "command": "codeColorfulRecentFiles.toggleSyncWithOpenTabsOn",
+        "title": "%command.syncWithOpenTabs.off%",
+        "category": "%category.recentFiles%"
+      },
+      {
+        "command": "codeColorfulRecentFiles.toggleSyncWithOpenTabsOff",
+        "title": "%command.syncWithOpenTabs.on%",
+        "category": "%category.recentFiles%"
+      },
+      {
+        "command": "codeColorfulRecentFiles.setFolderSortLatest",
+        "title": "%command.folderSort.latest%",
+        "category": "%category.recentFiles%"
+      },
+      {
+        "command": "codeColorfulRecentFiles.setFolderSortName",
+        "title": "%command.folderSort.name%",
+        "category": "%category.recentFiles%"
+      },
+      {
+        "command": "codeColorfulRecentFiles.setFolderSortManual",
+        "title": "%command.folderSort.manual%",
+        "category": "%category.recentFiles%"
+      },
+      {
         "command": "codeColorfulRecentFiles.toggleGroupByDirectoryOn",
         "title": "%command.toggleGroupByDirectory.on%",
         "category": "%category.recentFiles%"
@@ -193,54 +233,84 @@
           "group": "navigation"
         },
         {
-          "command": "codeColorfulRecentFiles.toggleGroupByDirectoryOff",
-          "when": "view == codeColorfulRecentFiles.recentView && config.codeColorfulRecentFiles.groupByDirectory",
+          "command": "codeColorfulRecentFiles.setGroupByDirectory",
+          "when": "view == codeColorfulRecentFiles.recentView && config.codeColorfulRecentFiles.groupBy == 'none'",
           "group": "1_options@1"
         },
         {
-          "command": "codeColorfulRecentFiles.toggleGroupByDirectoryOn",
-          "when": "view == codeColorfulRecentFiles.recentView && !config.codeColorfulRecentFiles.groupByDirectory",
+          "command": "codeColorfulRecentFiles.setGroupByType",
+          "when": "view == codeColorfulRecentFiles.recentView && config.codeColorfulRecentFiles.groupBy == 'directory'",
           "group": "1_options@1"
+        },
+        {
+          "command": "codeColorfulRecentFiles.setGroupByNone",
+          "when": "view == codeColorfulRecentFiles.recentView && config.codeColorfulRecentFiles.groupBy == 'type'",
+          "group": "1_options@1"
+        },
+        {
+          "command": "codeColorfulRecentFiles.setFolderSortName",
+          "when": "view == codeColorfulRecentFiles.recentView && config.codeColorfulRecentFiles.groupBy != 'none' && config.codeColorfulRecentFiles.folderSortOrder == 'latest'",
+          "group": "1_options@2"
+        },
+        {
+          "command": "codeColorfulRecentFiles.setFolderSortManual",
+          "when": "view == codeColorfulRecentFiles.recentView && config.codeColorfulRecentFiles.groupBy != 'none' && config.codeColorfulRecentFiles.folderSortOrder == 'name'",
+          "group": "1_options@2"
+        },
+        {
+          "command": "codeColorfulRecentFiles.setFolderSortLatest",
+          "when": "view == codeColorfulRecentFiles.recentView && config.codeColorfulRecentFiles.groupBy != 'none' && config.codeColorfulRecentFiles.folderSortOrder == 'manual'",
+          "group": "1_options@2"
+        },
+        {
+          "command": "codeColorfulRecentFiles.toggleSyncWithOpenTabsOff",
+          "when": "view == codeColorfulRecentFiles.recentView && config.codeColorfulRecentFiles.syncWithOpenTabs",
+          "group": "1_options@3"
+        },
+        {
+          "command": "codeColorfulRecentFiles.toggleSyncWithOpenTabsOn",
+          "when": "view == codeColorfulRecentFiles.recentView && !config.codeColorfulRecentFiles.syncWithOpenTabs",
+          "group": "1_options@3"
         },
         {
           "command": "codeColorfulRecentFiles.toggleColorSchemeRank",
           "when": "view == codeColorfulRecentFiles.recentView && config.codeColorfulRecentFiles.colorScheme == 'rankSpectrum'",
-          "group": "1_options@2"
+          "group": "1_options@4"
         },
         {
           "command": "codeColorfulRecentFiles.toggleColorSchemeBucket",
           "when": "view == codeColorfulRecentFiles.recentView && config.codeColorfulRecentFiles.colorScheme != 'rankSpectrum'",
-          "group": "1_options@2"
+          "group": "1_options@4"
         },
         {
           "command": "codeColorfulRecentFiles.toggleShowColorDotIconOff",
           "when": "view == codeColorfulRecentFiles.recentView && config.codeColorfulRecentFiles.showColorDotIcon",
-          "group": "1_options@3"
+          "group": "1_options@5"
         },
         {
           "command": "codeColorfulRecentFiles.toggleShowColorDotIconOn",
           "when": "view == codeColorfulRecentFiles.recentView && !config.codeColorfulRecentFiles.showColorDotIcon",
-          "group": "1_options@3"
+          "group": "1_options@5"
         },
         {
           "command": "codeColorfulRecentFiles.toggleStyleNativeExplorerOff",
           "when": "view == codeColorfulRecentFiles.recentView && config.codeColorfulRecentFiles.styleNativeExplorer",
-          "group": "1_options@4"
+          "group": "1_options@6"
         },
         {
           "command": "codeColorfulRecentFiles.toggleStyleNativeExplorerOn",
           "when": "view == codeColorfulRecentFiles.recentView && !config.codeColorfulRecentFiles.styleNativeExplorer",
-          "group": "1_options@4"
+          "group": "1_options@6"
         },
         {
           "command": "codeColorfulRecentFiles.toggleHighlightModeToModified",
           "when": "view == codeColorfulRecentFiles.recentView && config.codeColorfulRecentFiles.highlightMode == 'lastAccess'",
-          "group": "1_options@5"
+          "group": "1_options@7"
         },
         {
           "command": "codeColorfulRecentFiles.toggleHighlightModeToAccess",
           "when": "view == codeColorfulRecentFiles.recentView && config.codeColorfulRecentFiles.highlightMode != 'lastAccess'",
-          "group": "1_options@5"
+          "group": "1_options@7"
         },
         {
           "command": "codeColorfulRecentFiles.clearHistory",
@@ -259,6 +329,31 @@
     "configuration": {
       "title": "%configuration.title%",
       "properties": {
+        "codeColorfulRecentFiles.groupBy": {
+          "type": "string",
+          "enum": [
+            "none",
+            "directory",
+            "type"
+          ],
+          "default": "none",
+          "description": "%configuration.groupBy.description%"
+        },
+        "codeColorfulRecentFiles.folderSortOrder": {
+          "type": "string",
+          "enum": [
+            "latest",
+            "name",
+            "manual"
+          ],
+          "default": "latest",
+          "description": "%configuration.folderSortOrder.description%"
+        },
+        "codeColorfulRecentFiles.syncWithOpenTabs": {
+          "type": "boolean",
+          "default": false,
+          "description": "%configuration.syncWithOpenTabs.description%"
+        },
         "codeColorfulRecentFiles.groupByDirectory": {
           "type": "boolean",
           "default": false,
