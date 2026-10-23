@@ -2,7 +2,7 @@
   "name": "code-colorful-recent-files",
   "displayName": "%extension.displayName%",
   "description": "%extension.description%",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "publisher": "edwardsayer",
   "icon": "assets/icon.png",
   "license": "MIT",
@@ -148,8 +148,13 @@
         "category": "%category.recentFiles%"
       },
       {
-        "command": "codeColorfulRecentFiles.toggleStyleNativeExplorer",
-        "title": "%command.styleNativeExplorer.title%",
+        "command": "codeColorfulRecentFiles.toggleStyleNativeExplorerOn",
+        "title": "%command.styleNativeExplorer.on%",
+        "category": "%category.recentFiles%"
+      },
+      {
+        "command": "codeColorfulRecentFiles.toggleStyleNativeExplorerOff",
+        "title": "%command.styleNativeExplorer.off%",
         "category": "%category.recentFiles%"
       },
       {
@@ -218,10 +223,14 @@
           "group": "1_options@3"
         },
         {
-          "command": "codeColorfulRecentFiles.toggleStyleNativeExplorer",
-          "when": "view == codeColorfulRecentFiles.recentView",
-          "group": "1_options@4",
-          "toggled": "config.codeColorfulRecentFiles.styleNativeExplorer"
+          "command": "codeColorfulRecentFiles.toggleStyleNativeExplorerOff",
+          "when": "view == codeColorfulRecentFiles.recentView && config.codeColorfulRecentFiles.styleNativeExplorer",
+          "group": "1_options@4"
+        },
+        {
+          "command": "codeColorfulRecentFiles.toggleStyleNativeExplorerOn",
+          "when": "view == codeColorfulRecentFiles.recentView && !config.codeColorfulRecentFiles.styleNativeExplorer",
+          "group": "1_options@4"
         },
         {
           "command": "codeColorfulRecentFiles.toggleHighlightModeToModified",

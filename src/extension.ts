@@ -114,13 +114,16 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand('codeColorfulRecentFiles.toggleShowColorDotIconOff', toggleShowColorDotIcon)
   );
 
-  // 註冊指令：切換原生總管裝飾 (支援做法 D：VS Code 原生 toggled 對照組)
+  // 註冊指令：切換原生總管裝飾 (支援尾端方括號標記 [✓])
+  const toggleStyleNativeExplorer = async () => {
+    const config = getExtensionConfig();
+    await setStyleNativeExplorer(!config.styleNativeExplorer);
+    decorationProvider.fireChange();
+  };
   context.subscriptions.push(
-    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleStyleNativeExplorer', async () => {
-      const config = getExtensionConfig();
-      await setStyleNativeExplorer(!config.styleNativeExplorer);
-      decorationProvider.fireChange();
-    })
+    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleStyleNativeExplorer', toggleStyleNativeExplorer),
+    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleStyleNativeExplorerOn', toggleStyleNativeExplorer),
+    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleStyleNativeExplorerOff', toggleStyleNativeExplorer)
   );
 
   // 註冊指令：切換熱度時間基準 (支援做法 E：動態切換動作語意)
