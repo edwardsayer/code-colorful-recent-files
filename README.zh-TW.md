@@ -99,6 +99,11 @@
 }
 ```
 
+## 研發與技術文件
+
+- [VS Code 擴充套件開發陷阱與最佳實務指南](docs/vscode-extension-pitfalls-and-best-practices.md)
+- [外部開源專案架構與設計調研筆記](docs/external-projects-architectural-analysis.md)
+
 ## 貢獻指令
 
 * `最近檔案：重新整理` (`codeColorfulRecentFiles.refresh`)

@@ -99,6 +99,11 @@ If you are using a third-party theme with suboptimal contrast, you can override 
 }
 ```
 
+## Technical Documentation
+
+- [VS Code Extension Pitfalls & Best Practices](docs/vscode-extension-pitfalls-and-best-practices.md)
+- [External Projects Architectural Analysis](docs/external-projects-architectural-analysis.md)
+
 ## Commands
 
 * `Recent Files: Refresh`: Re-scan file existence and update decorations.
