@@ -118,6 +118,21 @@
         "category": "%category.recentFiles%"
       },
       {
+        "command": "codeColorfulRecentFiles.selectGroupByNone",
+        "title": "%command.groupBy.selectNone%",
+        "category": "%category.recentFiles%"
+      },
+      {
+        "command": "codeColorfulRecentFiles.selectGroupByDirectory",
+        "title": "%command.groupBy.selectDirectory%",
+        "category": "%category.recentFiles%"
+      },
+      {
+        "command": "codeColorfulRecentFiles.selectGroupByType",
+        "title": "%command.groupBy.selectType%",
+        "category": "%category.recentFiles%"
+      },
+      {
         "command": "codeColorfulRecentFiles.setGroupByNone",
         "title": "%command.groupBy.none%",
         "category": "%category.recentFiles%"
@@ -248,18 +263,8 @@
           "group": "navigation"
         },
         {
-          "command": "codeColorfulRecentFiles.setGroupByDirectory",
-          "when": "view == codeColorfulRecentFiles.recentView && config.codeColorfulRecentFiles.groupBy == 'none'",
-          "group": "1_options@1"
-        },
-        {
-          "command": "codeColorfulRecentFiles.setGroupByType",
-          "when": "view == codeColorfulRecentFiles.recentView && config.codeColorfulRecentFiles.groupBy == 'directory'",
-          "group": "1_options@1"
-        },
-        {
-          "command": "codeColorfulRecentFiles.setGroupByNone",
-          "when": "view == codeColorfulRecentFiles.recentView && config.codeColorfulRecentFiles.groupBy == 'type'",
+          "submenu": "codeColorfulRecentFiles.groupBySubmenu",
+          "when": "view == codeColorfulRecentFiles.recentView",
           "group": "1_options@1"
         },
         {
@@ -344,8 +349,31 @@
           "when": "view == codeColorfulRecentFiles.recentView && viewItem == fileItem",
           "group": "inline"
         }
+      ],
+      "codeColorfulRecentFiles.groupBySubmenu": [
+        {
+          "command": "codeColorfulRecentFiles.selectGroupByNone",
+          "group": "1_select@1",
+          "toggled": "config.codeColorfulRecentFiles.groupBy == 'none'"
+        },
+        {
+          "command": "codeColorfulRecentFiles.selectGroupByDirectory",
+          "group": "1_select@2",
+          "toggled": "config.codeColorfulRecentFiles.groupBy == 'directory'"
+        },
+        {
+          "command": "codeColorfulRecentFiles.selectGroupByType",
+          "group": "1_select@3",
+          "toggled": "config.codeColorfulRecentFiles.groupBy == 'type'"
+        }
       ]
     },
+    "submenus": [
+      {
+        "id": "codeColorfulRecentFiles.groupBySubmenu",
+        "label": "%submenu.groupBy.label%"
+      }
+    ],
     "configuration": {
       "title": "%configuration.title%",
       "properties": {

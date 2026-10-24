@@ -93,6 +93,18 @@ export function activate(context: vscode.ExtensionContext): void {
   };
   context.subscriptions.push(
     vscode.commands.registerCommand('codeColorfulRecentFiles.toggleGroupBy', cycleGroupBy),
+    vscode.commands.registerCommand('codeColorfulRecentFiles.selectGroupByNone', async () => {
+      await setGroupBy('none');
+      treeDataProvider.refresh();
+    }),
+    vscode.commands.registerCommand('codeColorfulRecentFiles.selectGroupByDirectory', async () => {
+      await setGroupBy('directory');
+      treeDataProvider.refresh();
+    }),
+    vscode.commands.registerCommand('codeColorfulRecentFiles.selectGroupByType', async () => {
+      await setGroupBy('type');
+      treeDataProvider.refresh();
+    }),
     vscode.commands.registerCommand('codeColorfulRecentFiles.setGroupByNone', async () => {
       await setGroupBy('none');
       treeDataProvider.refresh();
