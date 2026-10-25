@@ -31,7 +31,8 @@
 本套件提供兩種視覺風格，兼顧沉浸體驗與熱度辨識：
 
 1. **原生檔案圖示模式（預設）**：
-   維持 VS Code 原生 File Icon Theme（如 Seti、Material 等），文字與右方標注使用 VS Code 原生 `FileDecoration`（`#序號 • 時間`，例如 `#1 • 剛剛`）。
+   維持 VS Code 原生 File Icon Theme（如 Seti、Material 等）。檔名右側只顯示相對時間（例如 `剛剛`），順位序號由 VS Code 原生 `FileDecoration` 的 badge 呈現在**列的最右側**，兩者不重複。
+   > 註：開啟「Style Native Explorer」後，本套件也會為原生 Explorer 與 Editor tab 上色；**那些位置只上色、不顯示序號**，以免與檔案診斷（問題計數）、Git 裝飾等原生標記混在一起。
 2. **色彩小圓點模式（Color Dot Icon）**：
    在樹狀清單中將檔案圖示替換為精緻的向量色彩小圓點。小圓點採用平滑連續線性插值（Piecewise Linear Interpolation），並會依當前主題自動自適應（深色底使用 2026 Dark 柔和色階；亮色底使用 2026 Light 高對比色階）。
 

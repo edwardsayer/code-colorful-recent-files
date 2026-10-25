@@ -69,10 +69,10 @@ export class RecentTreeDataProvider implements vscode.TreeDataProvider<RecentTre
     const metricTime = getMetricTime(element.record, config.highlightMode);
     const timeStr = formatRelativeTime(metricTime, Date.now(), vscode.l10n.t('just now'));
     const rankInfo = this.manager.getRecordRank(element.record.fsPath);
-    const rankNumber = rankInfo ? rankInfo.rank + 1 : 1;
 
-    // ★ 關鍵呈現：在 description 中完整呈現序號與時間 (例如 "#1 剛剛"、"#2 5m")
-    item.description = `#${rankNumber} • ${timeStr}`;
+    // description 只顯示相對時間。序號已由 FileDecoration 的 badge 顯示在列的最右側，
+    // 不再重複（早期版本寫成 `#N • 5m`，造成同一資訊出現兩次）。
+    item.description = timeStr;
     item.tooltip = undefined;
 
     // 只有在使用者明確勾選 showColorDotIcon 時，才顯示色彩小圓點，預設維持原生檔案主題圖示

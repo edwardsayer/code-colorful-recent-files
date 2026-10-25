@@ -119,7 +119,17 @@ export class RecentFileDecorationProvider implements vscode.FileDecorationProvid
     // 因此 Badge 放置順位號碼 (如 "1", "2", "99"，1~2字元)，保證 100% 合法且絕不被作廢
     const badgeText = rankNumber > 99 ? '99' : String(rankNumber);
 
+    // 序號只屬於本套件自己的 TreeView。
+    // 當 styleNativeExplorer 開啟時，同一個 provider 也會裝飾原生 Explorer 與 Editor tab；
+    // 在那些地方疊序號會與檔案本身的語意、Git 裝飾與 tabs 標籤互相干擾，
+    // 因此只保留色彩，不給 badge。
+    const isOwnView = uri.scheme === RECENT_SCHEME;
+
     if (config.colorScheme === 'plainText') {
+      // plainText 方案下 badge 是唯一裝飾；原生位置不給序號就沒有可呈現的東西。
+      if (!isOwnView) {
+        return undefined;
+      }
       return {
         badge: badgeText,
         tooltip: undefined,
@@ -132,7 +142,7 @@ export class RecentFileDecorationProvider implements vscode.FileDecorationProvid
     }
 
     return {
-      badge: badgeText,
+      badge: isOwnView ? badgeText : undefined,
       color: new vscode.ThemeColor(themeColorId),
       tooltip: undefined,
     };

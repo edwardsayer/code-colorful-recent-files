@@ -28,6 +28,9 @@ A focused VS Code extension that presents your recently opened and edited files 
 
 ## Visual Styles: Native File Icons vs Color Dot Icons
 
+> **Rank numbers appear exactly once.** The file item's description shows only the relative time (e.g. `just now`); the rank is drawn by the native `FileDecoration` badge on the far right of the row. When **Style Native Explorer** is on, the same decoration is also applied to the built-in Explorer and editor tabs — there it shows **color only, without the rank badge**, so it never collides with file diagnostics or Git indicators.
+
+
 This extension provides two distinct visual presentations:
 
 1. **Native File Icons (Default)**:

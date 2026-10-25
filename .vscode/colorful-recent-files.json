@@ -1,51 +1,57 @@
 [
   {
-    "uri": "file:///d%3A/GitDev/code-extensions/code-colorful-recent-files/src/util/color.ts",
-    "fsPath": "d:\\GitDev\\code-extensions\\code-colorful-recent-files\\src\\util\\color.ts",
-    "lastOpenedTime": 1792934886653,
-    "lastModifiedTime": 1792856840235.8635
+    "uri": "file:///d%3A/GitDev/code-extensions/code-colorful-recent-files/LICENSE",
+    "fsPath": "d:\\GitDev\\code-extensions\\code-colorful-recent-files\\LICENSE",
+    "lastOpenedTime": 1792939415668,
+    "lastModifiedTime": 1792685516258.9622
   },
   {
-    "uri": "file:///d%3A/GitDev/code-extensions/code-colorful-recent-files/src/extension.ts",
-    "fsPath": "d:\\GitDev\\code-extensions\\code-colorful-recent-files\\src\\extension.ts",
-    "lastOpenedTime": 1792934885879,
-    "lastModifiedTime": 1792844496910.147
+    "uri": "file:///d%3A/GitDev/code-extensions/code-colorful-recent-files/AGENTS.md",
+    "fsPath": "d:\\GitDev\\code-extensions\\code-colorful-recent-files\\AGENTS.md",
+    "lastOpenedTime": 1792939415268,
+    "lastModifiedTime": 1792856810057.478
+  },
+  {
+    "uri": "file:///d%3A/GitDev/code-extensions/code-colorful-recent-files/esbuild.mjs",
+    "fsPath": "d:\\GitDev\\code-extensions\\code-colorful-recent-files\\esbuild.mjs",
+    "lastOpenedTime": 1792939414318,
+    "lastModifiedTime": 1792685501480.5356
   },
   {
     "uri": "file:///d%3A/GitDev/code-extensions/code-colorful-recent-files/CHANGELOG.md",
     "fsPath": "d:\\GitDev\\code-extensions\\code-colorful-recent-files\\CHANGELOG.md",
-    "lastOpenedTime": 1792934885277,
+    "lastOpenedTime": 1792939413871,
     "lastModifiedTime": 1792844641026.8362
   },
   {
     "uri": "file:///d%3A/GitDev/code-extensions/code-colorful-recent-files/README.md",
     "fsPath": "d:\\GitDev\\code-extensions\\code-colorful-recent-files\\README.md",
-    "lastOpenedTime": 1792934884813,
+    "lastOpenedTime": 1792939413540,
     "lastModifiedTime": 1792685626373.102
   },
   {
-    "uri": "file:///d%3A/GitDev/code-extensions/code-colorful-recent-files/LICENSE",
-    "fsPath": "d:\\GitDev\\code-extensions\\code-colorful-recent-files\\LICENSE",
-    "lastOpenedTime": 1792920938630,
-    "lastModifiedTime": 1792685516258.9622
+    "uri": "file:///d%3A/GitDev/code-extensions/code-colorful-recent-files/package.json",
+    "fsPath": "d:\\GitDev\\code-extensions\\code-colorful-recent-files\\package.json",
+    "lastOpenedTime": 1792939366522,
+    "lastModifiedTime": 1792690198232.5027
+  },
+  {
+    "uri": "file:///d%3A/GitDev/code-extensions/code-colorful-recent-files/src/util/color.ts",
+    "fsPath": "d:\\GitDev\\code-extensions\\code-colorful-recent-files\\src\\util\\color.ts",
+    "lastOpenedTime": 1792939178330,
+    "lastModifiedTime": 1792856840235.8635
+  },
+  {
+    "uri": "file:///d%3A/GitDev/code-extensions/code-colorful-recent-files/src/extension.ts",
+    "fsPath": "d:\\GitDev\\code-extensions\\code-colorful-recent-files\\src\\extension.ts",
+    "lastOpenedTime": 1792939177973,
+    "lastModifiedTime": 1792844496910.147
   },
   {
     "uri": "file:///d%3A/GitDev/code-extensions/code-colorful-recent-files/tsconfig.json",
     "fsPath": "d:\\GitDev\\code-extensions\\code-colorful-recent-files\\tsconfig.json",
     "lastOpenedTime": 1792920937275,
     "lastModifiedTime": 1792685491490.2285
-  },
-  {
-    "uri": "file:///d%3A/GitDev/code-extensions/code-colorful-recent-files/esbuild.mjs",
-    "fsPath": "d:\\GitDev\\code-extensions\\code-colorful-recent-files\\esbuild.mjs",
-    "lastOpenedTime": 1792920936344,
-    "lastModifiedTime": 1792685501480.5356
-  },
-  {
-    "uri": "file:///d%3A/GitDev/code-extensions/code-colorful-recent-files/package.json",
-    "fsPath": "d:\\GitDev\\code-extensions\\code-colorful-recent-files\\package.json",
-    "lastOpenedTime": 1792920871333,
-    "lastModifiedTime": 1792690198232.5027
   },
   {
     "uri": "file:///d%3A/GitDev/code-extensions/code-colorful-recent-files/src/config.ts",

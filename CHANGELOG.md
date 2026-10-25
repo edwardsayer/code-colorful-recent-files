@@ -2,6 +2,12 @@
 
 All notable changes to the "code-colorful-recent-files" extension will be documented in this file.
 
+## [0.2.1] - 2026-10-25
+
+### Changed
+- The file item description now shows only the relative time. The rank number is no longer duplicated there — it stays in the native `FileDecoration` badge on the far right of the row.
+- When **Style Native Explorer** is enabled, the built-in Explorer tree and editor tabs receive the heat color but **no rank badge**, so the number no longer competes with file diagnostics or Git indicators.
+
 ## [0.2.0] - 2026-10-25
 
 ### Added
