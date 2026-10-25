@@ -1,4 +1,4 @@
-import * as path from 'node:path';
+﻿import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { getExtensionConfig } from './config';
 import { RecentFilesManager } from './recentFilesManager';
@@ -11,7 +11,8 @@ import {
   RecentTreeElement,
 } from './types';
 import { createColorDotSvgDataUri, interpolateRainbow } from './util/color';
-import { calculateHeatmapLevel, formatRelativeTime, getMetricTime } from './util/time';
+import { isPinned, orderGroups } from './util/groupSort';
+import { calculateHeatmapLevel, formatRelativeTime, getGroupLatestActivity, getMetricTime } from './util/time';
 import { getFileTypeGroup } from './util/typeGroup';
 
 export class RecentTreeDataProvider implements vscode.TreeDataProvider<RecentTreeElement> {
@@ -41,12 +42,14 @@ export class RecentTreeDataProvider implements vscode.TreeDataProvider<RecentTre
 
       const item = new vscode.TreeItem(viewFolderUri, vscode.TreeItemCollapsibleState.Expanded);
       item.label = element.folderName;
-      item.description = undefined;
+      item.description = element.isPinned ? '📌' : undefined;
       // Hint (Tooltip)
       item.tooltip = element.groupKind === 'type'
         ? `${element.folderName} (${element.files.length} items)`
         : element.folderAbsolutePath;
-      item.contextValue = 'folderItem';
+      item.contextValue = element.groupKind === 'type'
+        ? (element.isPinned ? 'typeItem.pinned' : 'typeItem')
+        : (element.isPinned ? 'folderItem.pinned' : 'folderItem');
 
       return item;
     }
@@ -64,7 +67,7 @@ export class RecentTreeDataProvider implements vscode.TreeDataProvider<RecentTre
     const config = getExtensionConfig();
 
     const metricTime = getMetricTime(element.record, config.highlightMode);
-    const timeStr = formatRelativeTime(metricTime);
+    const timeStr = formatRelativeTime(metricTime, Date.now(), vscode.l10n.t('just now'));
     const rankInfo = this.manager.getRecordRank(element.record.fsPath);
     const rankNumber = rankInfo ? rankInfo.rank + 1 : 1;
 
@@ -111,7 +114,8 @@ export class RecentTreeDataProvider implements vscode.TreeDataProvider<RecentTre
       arguments: [originalFileUri],
     };
 
-    item.contextValue = 'fileItem';
+    // 目前開啟為分頁的檔案另帶 .tab，供分頁類右鍵選單（關閉、固定、分割…）判斷
+    item.contextValue = this.manager.isOpenTab(element.record.fsPath) ? 'fileItem.tab' : 'fileItem';
     return item;
   }
 
@@ -129,6 +133,8 @@ export class RecentTreeDataProvider implements vscode.TreeDataProvider<RecentTre
       }
 
       const folderElements: RecentFolderElement[] = [];
+      // 已 Pin 分組清單：順序即手動排列順序，用於排序與節點狀態
+      const pinnedOrder = this.manager.getPinnedGroupOrder();
 
       if (config.groupBy === 'type') {
         // 依檔案類型 (副檔名大寫) 分組
@@ -150,16 +156,19 @@ export class RecentTreeDataProvider implements vscode.TreeDataProvider<RecentTre
             return timeB - timeA;
           });
           const primaryFile = sortedFiles[0];
+          const folderKey = `type:${typeName}`;
 
           folderElements.push({
             kind: 'folder',
             groupKind: 'type',
-            folderKey: `type:${typeName}`,
+            folderKey,
             folderPath: typeName,
             folderAbsolutePath: primaryFile ? primaryFile.fsPath : typeName,
             folderName: typeName,
             files: sortedFiles,
             primaryFileFsPath: primaryFile?.fsPath,
+            isPinned: isPinned(pinnedOrder, folderKey),
+            latestActivity: getGroupLatestActivity(sortedFiles, config.highlightMode),
           });
         }
       } else {
@@ -188,7 +197,7 @@ export class RecentTreeDataProvider implements vscode.TreeDataProvider<RecentTre
           let shortName = path.basename(absDir);
 
           if (workspaceRoot && path.normalize(absDir).toLowerCase() === path.normalize(workspaceRoot).toLowerCase()) {
-            shortName = '工作區根目錄';
+            shortName = vscode.l10n.t('Workspace Root');
           }
 
           const sortedFiles = [...group.files].sort((a, b) => {
@@ -206,40 +215,14 @@ export class RecentTreeDataProvider implements vscode.TreeDataProvider<RecentTre
             folderName: shortName || absDir,
             files: sortedFiles,
             primaryFileFsPath: sortedFiles[0]?.fsPath,
+            isPinned: isPinned(pinnedOrder, `dir:${absDir.toLowerCase()}`),
+            latestActivity: getGroupLatestActivity(sortedFiles, config.highlightMode),
           });
         }
       }
 
-      // 三重排序調度器：latest / name / manual
-      if (config.folderSortOrder === 'name') {
-        folderElements.sort((a, b) => a.folderName.localeCompare(b.folderName));
-      } else if (config.folderSortOrder === 'manual') {
-        const manualOrder = this.manager.getFolderManualOrder();
-        // 補充尚未登記在 manualOrder 中的資料夾 (確保每個 folderKey 皆有固定 index，點擊檔案絕不跳動)
-        const missingKeys = folderElements.filter((f) => !manualOrder.includes(f.folderKey)).map((f) => f.folderKey);
-        if (missingKeys.length > 0) {
-          manualOrder.push(...missingKeys);
-          this.manager.setFolderManualOrder(manualOrder, false);
-        }
-
-        folderElements.sort((a, b) => {
-          const idxA = manualOrder.indexOf(a.folderKey);
-          const idxB = manualOrder.indexOf(b.folderKey);
-          if (idxA !== -1 && idxB !== -1) return idxA - idxB;
-          if (idxA !== -1) return -1;
-          if (idxB !== -1) return 1;
-          return a.folderKey.localeCompare(b.folderKey);
-        });
-      } else {
-        // 'latest' (預設)：依各資料夾最新活動時間由新到舊排序
-        folderElements.sort((a, b) => {
-          const timeA = a.files[0] ? Math.max(a.files[0].lastOpenedTime || 0, a.files[0].lastModifiedTime || 0) : 0;
-          const timeB = b.files[0] ? Math.max(b.files[0].lastOpenedTime || 0, b.files[0].lastModifiedTime || 0) : 0;
-          return timeB - timeA;
-        });
-      }
-
-      return folderElements;
+      // 排序：已 Pin 分組置頂並依手動拖曳順序；未 Pin 分組接續其後，依組內最近時間排序
+      return orderGroups(folderElements, pinnedOrder);
     }
 
     // 子層級：Folder 下的檔案 (已照時間由新到舊排序)

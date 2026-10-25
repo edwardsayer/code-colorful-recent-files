@@ -1,5 +1,5 @@
-import * as vscode from 'vscode';
-import { ColorScheme, ExtensionConfig, FolderSortOrder, GroupByMode } from './types';
+﻿import * as vscode from 'vscode';
+import { ColorScheme, ExtensionConfig, GroupByMode } from './types';
 
 const SECTION = 'codeColorfulRecentFiles';
 
@@ -24,7 +24,6 @@ export function getExtensionConfig(): ExtensionConfig {
     showColorDotIcon: config.get<boolean>('showColorDotIcon', false),
     styleNativeExplorer: config.get<boolean>('styleNativeExplorer', false),
     syncWithOpenTabs: config.get<boolean>('syncWithOpenTabs', false),
-    folderSortOrder: config.get<FolderSortOrder>('folderSortOrder', 'latest'),
   };
 }
 
@@ -32,10 +31,6 @@ export async function setGroupBy(value: GroupByMode): Promise<void> {
   const config = vscode.workspace.getConfiguration(SECTION);
   await config.update('groupBy', value, vscode.ConfigurationTarget.Global);
   await config.update('groupByDirectory', value === 'directory', vscode.ConfigurationTarget.Global);
-}
-
-export async function setGroupByDirectory(value: boolean): Promise<void> {
-  await setGroupBy(value ? 'directory' : 'none');
 }
 
 export async function setColorScheme(value: ColorScheme): Promise<void> {
@@ -61,9 +56,4 @@ export async function setHighlightMode(value: 'lastAccess' | 'lastModified'): Pr
 export async function setSyncWithOpenTabs(value: boolean): Promise<void> {
   const config = vscode.workspace.getConfiguration(SECTION);
   await config.update('syncWithOpenTabs', value, vscode.ConfigurationTarget.Global);
-}
-
-export async function setFolderSortOrder(value: FolderSortOrder): Promise<void> {
-  const config = vscode.workspace.getConfiguration(SECTION);
-  await config.update('folderSortOrder', value, vscode.ConfigurationTarget.Global);
 }

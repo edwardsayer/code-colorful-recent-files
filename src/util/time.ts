@@ -1,4 +1,4 @@
-import { HeatmapLevel, RecentFileRecord } from '../types';
+﻿import { HeatmapLevel, RecentFileRecord } from '../types';
 
 export const FIFTEEN_MINUTES = 15 * 60 * 1000;
 export const TWO_HOURS = 2 * 60 * 60 * 1000;
@@ -12,6 +12,25 @@ export function getMetricTime(record: RecentFileRecord, mode: 'lastAccess' | 'la
     return record.lastModifiedTime;
   }
   return Math.max(record.lastOpenedTime, record.lastModifiedTime);
+}
+
+/**
+ * 取得一組檔案中依指定基準時間的最新值（供分組排序使用）。
+ * 不論組內檔案如何排序，皆回傳真正的最新活動時間，
+ * 避免「組內第一筆」因排序依據（max(opened, modified)）與 metric 不一致而失真。
+ */
+export function getGroupLatestActivity(
+  records: readonly RecentFileRecord[],
+  mode: 'lastAccess' | 'lastModified'
+): number {
+  let latest = 0;
+  for (const record of records) {
+    const time = getMetricTime(record, mode);
+    if (Number.isFinite(time) && time > latest) {
+      latest = time;
+    }
+  }
+  return latest;
 }
 
 /**
@@ -32,9 +51,9 @@ export function calculateHeatmapLevel(time: number, now = Date.now()): HeatmapLe
 }
 
 /**
- * 格式化相對時間描述（簡潔標籤，例如 "剛剛" / "5m ago"）
+ * 格式化相對時間描述（簡潔標籤，例如 "just now" / "5m"）
  */
-export function formatRelativeTime(time: number, now = Date.now()): string {
+export function formatRelativeTime(time: number, now = Date.now(), justNowLabel = 'just now'): string {
   const diffMs = Math.max(0, now - time);
   const diffSec = Math.floor(diffMs / 1000);
   const diffMin = Math.floor(diffSec / 60);
@@ -42,7 +61,7 @@ export function formatRelativeTime(time: number, now = Date.now()): string {
   const diffDay = Math.floor(diffHour / 24);
 
   if (diffMin < 1) {
-    return '剛剛';
+    return justNowLabel;
   }
   if (diffMin < 60) {
     return `${diffMin}m`;

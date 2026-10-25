@@ -19,6 +19,9 @@ out/
 esbuild.tests.mjs
 dist/**/*.map
 
+# Local backups / scratch material (never ship)
+assets/backup-box/
+
 # Config files not needed at runtime
 tsconfig*.json
 esbuild.mjs

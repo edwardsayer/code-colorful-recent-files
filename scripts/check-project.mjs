@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+﻿#!/usr/bin/env node
 /**
  * code-colorful-recent-files 專案健康度檢查（zero-dependency，Node 20+）。
  *
@@ -37,8 +37,10 @@ const requiredFiles = [
   'assets/icon.svg',
   'package.nls.json',
   'package.nls.zh-tw.json',
+  'package.nls.zh-cn.json',
   'l10n/bundle.l10n.json',
   'l10n/bundle.l10n.zh-tw.json',
+  'l10n/bundle.l10n.zh-cn.json',
 ];
 
 for (const file of requiredFiles) {

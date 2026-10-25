@@ -1,0 +1,18 @@
+{
+  "Are you sure you want to clear all recent files history?": "您确定要清除所有最近文件记录吗？",
+  "Clear": "清除",
+  "Cancel": "取消",
+  "Recent files history has been cleared.": "最近文件历史记录已清空。",
+  "just now": "刚刚",
+  "{0}m ago": "{0} 分钟前",
+  "{0}h ago": "{0} 小时前",
+  "{0}d ago": "{0} 天前",
+  "Last edited: {0}": "最后编辑于：{0}",
+  "Last accessed: {0}": "最后访问于：{0}",
+  "Rank #{0} of {1} • {2}": "顺位 #{0} / {1} • {2}",
+  "Workspace Root": "工作区根目录",
+  "Close {0} tabs in this group?": "要关闭此分组的 {0} 个标签页吗？",
+  "Close Tabs": "关闭标签页",
+  "Remove {0} files in this group from history?": "要从历史记录中移除此分组的 {0} 个文件吗？",
+  "Remove": "移除"
+}

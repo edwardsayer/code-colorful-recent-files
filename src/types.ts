@@ -24,8 +24,6 @@ export type ColorScheme = 'timeBucket' | 'rankSpectrum' | 'plainText';
 /** 分組模式：平鋪清單、依目錄分組、依檔案類型分組 */
 export type GroupByMode = 'none' | 'directory' | 'type';
 
-/** 資料夾排序模式：最新活動在前、依名稱字母排序、手動拉曳排序 */
-export type FolderSortOrder = 'latest' | 'name' | 'manual';
 
 /** 樹狀節點項目 */
 export type RecentTreeElement = RecentFolderElement | RecentFileElement;
@@ -39,6 +37,8 @@ export interface RecentFolderElement {
   folderName: string;              // 顯示名稱 (如目錄名或大寫副檔名 'TS')
   files: RecentFileRecord[];
   primaryFileFsPath?: string;      // 該資料夾中排序第一 (最新) 的檔案路徑
+  isPinned: boolean;               // 是否已 Pin (決定排序區塊與右鍵選單)
+  latestActivity: number;          // 組內最活躍檔案時間，供未 Pin 分組排序
 }
 
 export interface RecentFileElement {
@@ -57,5 +57,4 @@ export interface ExtensionConfig {
   showColorDotIcon: boolean;
   styleNativeExplorer: boolean;
   syncWithOpenTabs: boolean;
-  folderSortOrder: FolderSortOrder;
 }

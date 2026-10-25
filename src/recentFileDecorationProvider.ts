@@ -1,8 +1,8 @@
-import * as vscode from 'vscode';
+﻿import * as vscode from 'vscode';
 import { getExtensionConfig } from './config';
 import { RecentFilesManager } from './recentFilesManager';
 import { HeatmapLevel, RECENT_FOLDER_SCHEME, RECENT_SCHEME } from './types';
-import { getSpectrumThemeColorId } from './util/color';
+import { getHeatColorId, getSpectrumThemeColorId } from './util/color';
 import { calculateHeatmapLevel, getMetricTime } from './util/time';
 
 export class RecentFileDecorationProvider implements vscode.FileDecorationProvider {
@@ -38,16 +38,16 @@ export class RecentFileDecorationProvider implements vscode.FileDecorationProvid
         const t = total > 1 ? rank / (total - 1) : 0;
         return getSpectrumThemeColorId(t);
       }
-      return 'charts.red';
+      return getHeatColorId(0);
     } else {
       const level = calculateHeatmapLevel(metricTime);
       switch (level) {
         case HeatmapLevel.Fresh:
-          return 'charts.green';
+          return getHeatColorId(3);
         case HeatmapLevel.Warm:
-          return 'charts.yellow';
+          return getHeatColorId(2);
         case HeatmapLevel.Day:
-          return 'charts.orange';
+          return getHeatColorId(1);
         case HeatmapLevel.Old:
         default:
           return undefined;

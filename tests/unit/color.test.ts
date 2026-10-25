@@ -1,14 +1,25 @@
-import { describe, expect, it } from 'vitest';
+﻿import { beforeEach, describe, expect, it } from 'vitest';
 import {
+  FALLBACK_COLOR_IDS,
+  HEAT_COLOR_IDS,
   PALETTE_2026_DARK,
   PALETTE_2026_LIGHT,
   createColorDotSvgDataUri,
+  decideHeatTokensReady,
+  getHeatColorId,
   getSpectrumThemeColorId,
   hexToRgb,
   interpolatePalette,
   interpolateRainbow,
+  isTransparentColor,
   rgbToHex,
+  resetHeatTokensReady,
+  setHeatTokensReady,
 } from '../../src/util/color';
+
+beforeEach(() => {
+  resetHeatTokensReady();
+});
 
 describe('color utility', () => {
   it('converts hex to RGB accurately', () => {
@@ -51,17 +62,100 @@ describe('color utility', () => {
   });
 
   it('maps rank ratio to ThemeColor ids with charts spectrum', () => {
-    expect(getSpectrumThemeColorId(0.05)).toBe('charts.red');
-    expect(getSpectrumThemeColorId(0.25)).toBe('charts.orange');
-    expect(getSpectrumThemeColorId(0.40)).toBe('charts.yellow');
-    expect(getSpectrumThemeColorId(0.60)).toBe('charts.green');
-    expect(getSpectrumThemeColorId(0.75)).toBe('charts.blue');
-    expect(getSpectrumThemeColorId(0.95)).toBe('charts.purple');
+    expect(getSpectrumThemeColorId(0.05)).toBe('colorfulRecentFiles.heat1');
+    expect(getSpectrumThemeColorId(0.25)).toBe('colorfulRecentFiles.heat2');
+    expect(getSpectrumThemeColorId(0.40)).toBe('colorfulRecentFiles.heat3');
+    expect(getSpectrumThemeColorId(0.60)).toBe('colorfulRecentFiles.heat4');
+    expect(getSpectrumThemeColorId(0.75)).toBe('colorfulRecentFiles.heat5');
+    expect(getSpectrumThemeColorId(0.95)).toBe('colorfulRecentFiles.heat6');
   });
 
   it('creates svg data uri with the specified color', () => {
     const uri = createColorDotSvgDataUri('#ff0000');
     expect(uri).toContain('data:image/svg+xml;utf8,');
     expect(uri).toContain('%23ff0000');
+  });
+});
+
+describe('first-session fallback colors', () => {
+  it('never uses charts.orange (semi-transparent in VSCodium / Code-OSS)', () => {
+    // 回歸保護：VSCodium 的 charts.orange 是 rgba(234, 92, 0, 0.33)，
+    // 當成文字前景色會幾乎看不見，因此橘色階必須使用不透明的替代 token。
+    expect(FALLBACK_COLOR_IDS).not.toContain('charts.orange');
+    expect(FALLBACK_COLOR_IDS).toHaveLength(HEAT_COLOR_IDS.length);
+  });
+
+  it('maps the orange step to an opaque built-in token', () => {
+    expect(FALLBACK_COLOR_IDS[1]).toBe('symbolIcon.classForeground');
+  });
+
+  it('switches between heat and fallback tokens via setHeatTokensReady', () => {
+    setHeatTokensReady(true);
+    expect(getHeatColorId(1)).toBe('colorfulRecentFiles.heat2');
+    expect(getSpectrumThemeColorId(0.25)).toBe('colorfulRecentFiles.heat2');
+
+    setHeatTokensReady(false);
+    expect(getHeatColorId(1)).toBe('symbolIcon.classForeground');
+    expect(getSpectrumThemeColorId(0.25)).toBe('symbolIcon.classForeground');
+
+    setHeatTokensReady(true); // 還原，避免影響其他測試
+  });
+
+  it('detects semi-transparent color values', () => {
+    expect(isTransparentColor('rgba(234, 92, 0, 0.33)')).toBe(true);
+    expect(isTransparentColor('rgba(234, 92, 0, 1)')).toBe(false);
+    expect(isTransparentColor('#ff00ff')).toBe(false);
+    expect(isTransparentColor('#ff00ff80')).toBe(true);
+    expect(isTransparentColor('#ff00ffff')).toBe(false);
+    expect(isTransparentColor('transparent')).toBe(true);
+    expect(isTransparentColor('')).toBe(true);
+  });
+});
+
+describe('decideHeatTokensReady (first-session token detection)', () => {
+  const HOST = 1_792_854_000_000; // 假設 Extension Host 啟動時間
+
+  it('treats an extension installed before this window as ready', () => {
+    // 安裝於上一次工作階段（例如一般啟動）→ token 已由視窗啟動時套用
+    expect(decideHeatTokensReady(HOST - 86_400_000, HOST)).toBe(true);
+  });
+
+  it('treats an extension installed after this window as NOT ready (runtime install)', () => {
+    // 使用者的「移除 → reload → 從 VSIX 重裝」流程：安裝時間晚於本視窗啟動
+    expect(decideHeatTokensReady(HOST + 60_000, HOST)).toBe(false);
+    expect(decideHeatTokensReady(HOST + 3_600_000, HOST)).toBe(false);
+  });
+
+  it('treats an install within the default 30s tolerance as NOT ready', () => {
+    // 檔案時間與程序啟動時間有顆粒度，落在容差內一律視為未就緒（偏向 fallback）
+    expect(decideHeatTokensReady(HOST - 1_000, HOST)).toBe(false);
+    expect(decideHeatTokensReady(HOST - 29_999, HOST)).toBe(false);
+    expect(decideHeatTokensReady(HOST - 30_001, HOST)).toBe(true);
+  });
+
+  it('covers the exact epsilon boundary as ready', () => {
+    // installedAt === hostStart - epsilon → <= 成立 → ready
+    expect(decideHeatTokensReady(HOST - 30_000, HOST)).toBe(true);
+    expect(decideHeatTokensReady(HOST - 5_000, HOST, 5_000)).toBe(true);
+    expect(decideHeatTokensReady(HOST - 4_999, HOST, 5_000)).toBe(false);
+  });
+
+  it('honours a custom epsilon', () => {
+    expect(decideHeatTokensReady(HOST - 20_000, HOST, 60_000)).toBe(false);
+    expect(decideHeatTokensReady(HOST - 20_000, HOST, 10_000)).toBe(true);
+  });
+
+  it('covers the late Extension Host restart case', () => {
+    // 安裝後 20 秒才發生 EH 重啟（視窗未 reload）→ hostStart 往後移，
+    // 30 秒容差仍能判定為未就緒，避免重現不上色。
+    const restartHost = HOST + 20_000;
+    expect(decideHeatTokensReady(HOST, restartHost)).toBe(false);
+  });
+
+  it('falls back when timestamps are unavailable', () => {
+    expect(decideHeatTokensReady(0, HOST)).toBe(false);
+    expect(decideHeatTokensReady(HOST - 86_400_000, 0)).toBe(false);
+    expect(decideHeatTokensReady(NaN, HOST)).toBe(false);
+    expect(decideHeatTokensReady(HOST, NaN)).toBe(false);
   });
 });

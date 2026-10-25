@@ -3,10 +3,12 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { getExtensionConfig } from './config';
 import { RecentFileRecord } from './types';
+import { addToPinnedOrder, isPinned, removeFromPinnedOrder } from './util/groupSort';
 import { logError, logInfo } from './util/log';
 import { normalizePathKey } from './util/pathUtil';
 
 const STORAGE_KEY = 'codeColorfulRecentFiles.records';
+const PINNED_ORDER_KEY = 'codeColorfulRecentFiles.pinnedGroupOrder';
 const BACKUP_FILE_NAME = 'colorful-recent-files.json';
 
 export { normalizePathKey };
@@ -108,6 +110,17 @@ export class RecentFilesManager {
     }
   }
 
+  /**
+   * 作廢排序快取。
+   *
+   * `getRecords()` 的 `sortedCache` 會依 `maxRecentFiles` 截斷；資料事件都會自行清快取，
+   * 但**設定變更**（如調整上限）不涉及資料變動，必須由外部明確呼叫此方法，
+   * 否則畫面會一直沿用舊上限，直到 reload 或下一次資料事件才更新。
+   */
+  public invalidateCache(): void {
+    this.sortedCache = null;
+  }
+
   public getRecords(): RecentFileRecord[] {
     if (this.sortedCache) {
       return this.sortedCache;
@@ -153,37 +166,68 @@ export class RecentFilesManager {
     return this.openTabsSet.has(normalizePathKey(fsPath));
   }
 
-  /** 取得資料夾手動排序順序清單 */
-  public getFolderManualOrder(): string[] {
-    return this.context.workspaceState.get<string[]>('codeColorfulRecentFiles.folderManualOrder') || [];
+  /** 取得已 Pin 分組 key 清單（順序即手動排列順序） */
+  public getPinnedGroupOrder(): string[] {
+    return this.context.workspaceState.get<string[]>(PINNED_ORDER_KEY) || [];
   }
 
-  /** 保存資料夾手動排序順序清單 */
-  public async setFolderManualOrder(order: string[], fireEvent = true): Promise<void> {
-    await this.context.workspaceState.update('codeColorfulRecentFiles.folderManualOrder', order);
+  /** 保存已 Pin 分組 key 清單 */
+  public async setPinnedGroupOrder(order: string[], fireEvent = true): Promise<void> {
+    await this.context.workspaceState.update(PINNED_ORDER_KEY, order);
     if (fireEvent) {
       this._onDidChangeRecentFiles.fire();
     }
   }
 
+  /** 切換分組的 Pin 狀態；回傳切換後是否為已 Pin */
+  public async togglePinnedGroup(folderKey: string): Promise<boolean> {
+    const current = this.getPinnedGroupOrder();
+    const next = isPinned(current, folderKey)
+      ? removeFromPinnedOrder(current, folderKey)
+      : addToPinnedOrder(current, folderKey);
+    await this.setPinnedGroupOrder(next);
+    return next.includes(folderKey);
+  }
+
+  /** 清空已 Pin 分組（清除全部歷史時一併還原預設狀態） */
+  public async clearPinnedGroups(): Promise<void> {
+    if (this.getPinnedGroupOrder().length > 0) {
+      await this.setPinnedGroupOrder([], false);
+    }
+  }
+
   /** 關閉對應路徑的 VS Code Open Tab */
-  public async closeTabForFile(fsPath: string): Promise<void> {
-    const targetKey = normalizePathKey(fsPath);
-    const tabsToClose: vscode.Tab[] = [];
+  /** 取得開啟指定檔案的所有分頁 */
+  public getTabsForFiles(fsPaths: string[]): vscode.Tab[] {
+    const targetKeys = new Set(fsPaths.map((p) => normalizePathKey(p)));
+    const tabs: vscode.Tab[] = [];
     try {
       for (const group of vscode.window.tabGroups.all) {
         for (const tab of group.tabs) {
           const uri = this.extractTabUri(tab);
-          if (uri && normalizePathKey(uri.fsPath) === targetKey) {
-            tabsToClose.push(tab);
+          if (uri && targetKeys.has(normalizePathKey(uri.fsPath))) {
+            tabs.push(tab);
           }
         }
       }
+    } catch (err) {
+      logError('Failed to enumerate tabs for files', err);
+    }
+    return tabs;
+  }
+
+  public async closeTabForFile(fsPath: string): Promise<void> {
+    await this.closeTabsForFiles([fsPath]);
+  }
+
+  public async closeTabsForFiles(fsPaths: string[]): Promise<void> {
+    const tabsToClose = this.getTabsForFiles(fsPaths);
+    try {
       if (tabsToClose.length > 0) {
         await vscode.window.tabGroups.close(tabsToClose);
       }
     } catch (err) {
-      logError('Failed to close tab for file: ' + fsPath, err);
+      logError('Failed to close tabs for files', err);
     }
   }
 
@@ -285,6 +329,7 @@ export class RecentFilesManager {
     this.recordsMap.clear();
     this.sortedCache = null;
     await this.saveToStorage();
+    await this.clearPinnedGroups();
     this._onDidChangeRecentFiles.fire();
     logInfo('Cleared all recent files history.');
   }

@@ -18,6 +18,9 @@ node_modules/
 /tools/*.png
 vitest-out.txt
 
+# Local icon backups (old versions remain in git history)
+/assets/backup-box/
+
 # AI-only directories (keep .vscode/ for contributors)
 .agents/
 .commandcode/

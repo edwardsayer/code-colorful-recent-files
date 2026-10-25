@@ -1,9 +1,10 @@
-import { describe, expect, it } from 'vitest';
+﻿import { describe, expect, it } from 'vitest';
 import { HeatmapLevel, RecentFileRecord } from '../../src/types';
 import {
   calculateHeatmapLevel,
   FIFTEEN_MINUTES,
   formatRelativeTime,
+  getGroupLatestActivity,
   getMetricTime,
   TWENTY_FOUR_HOURS,
   TWO_HOURS,
@@ -38,7 +39,7 @@ describe('time utility', () => {
   it('correctly formats relative time strings', () => {
     const now = 1700000000000;
 
-    expect(formatRelativeTime(now - 30 * 1000, now)).toBe('剛剛');
+    expect(formatRelativeTime(now - 30 * 1000, now)).toBe('just now');
     expect(formatRelativeTime(now - 5 * 60 * 1000, now)).toBe('5m');
     expect(formatRelativeTime(now - 3 * 60 * 60 * 1000, now)).toBe('3h');
     expect(formatRelativeTime(now - 48 * 60 * 60 * 1000, now)).toBe('2d');
@@ -64,5 +65,32 @@ describe('time utility', () => {
 
     expect(getMetricTime(recordOpenedLater, 'lastModified')).toBe(3000);
     expect(getMetricTime(recordOpenedLater, 'lastAccess')).toBe(5000);
+  });
+});
+
+describe('getGroupLatestActivity', () => {
+  const rec = (fsPath: string, lastOpenedTime: number, lastModifiedTime: number) => ({
+    uri: `file:///${fsPath}`,
+    fsPath,
+    lastOpenedTime,
+    lastModifiedTime,
+  });
+
+  it('returns the max metric time regardless of input order', () => {
+    const records = [rec('a', 100, 900), rec('b', 500, 200), rec('c', 300, 300)];
+    expect(getGroupLatestActivity(records, 'lastAccess')).toBe(900);
+    expect(getGroupLatestActivity(records, 'lastModified')).toBe(900);
+  });
+
+  it('follows the selected metric instead of max(opened, modified)', () => {
+    const records = [rec('a', 999, 10), rec('b', 20, 30)];
+    // lastAccess 取 max(opened, modified) → 999；lastModified 只看 modified → 30
+    expect(getGroupLatestActivity(records, 'lastAccess')).toBe(999);
+    expect(getGroupLatestActivity(records, 'lastModified')).toBe(30);
+  });
+
+  it('returns 0 for empty groups and ignores non-finite values', () => {
+    expect(getGroupLatestActivity([], 'lastAccess')).toBe(0);
+    expect(getGroupLatestActivity([rec('a', NaN, NaN)], 'lastAccess')).toBe(0);
   });
 });

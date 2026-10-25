@@ -1,8 +1,16 @@
 import * as vscode from 'vscode';
-import { setFolderSortOrder } from './config';
 import { RecentFilesManager } from './recentFilesManager';
 import { RecentFolderElement, RecentTreeElement } from './types';
+import { moveWithinPinnedOrder } from './util/groupSort';
 
+/**
+ * 分組拖曳排序控制器。
+ *
+ * 規則（依使用者核定）：
+ * - 只有已 Pin 的分組可被拖曳；未 Pin 分組不可拖。
+ * - 落點必須是已 Pin 的分組；拖到未 Pin 分組或平鋪檔案上不接受。
+ * - 拖到空白處（target 為 undefined）＝附加到已 Pin 區塊末尾（仍排在未 Pin 之上）。
+ */
 export class RecentTreeDragAndDropController implements vscode.TreeDragAndDropController<RecentTreeElement> {
   public readonly dragMimeTypes = ['application/vnd.code.tree.codeColorfulRecentFiles'];
   public readonly dropMimeTypes = ['application/vnd.code.tree.codeColorfulRecentFiles'];
@@ -13,11 +21,14 @@ export class RecentTreeDragAndDropController implements vscode.TreeDragAndDropCo
   ) {}
 
   public handleDrag(source: readonly RecentTreeElement[], treeDataTransfer: vscode.DataTransfer): void {
-    const folders = source.filter((item): item is RecentFolderElement => item.kind === 'folder');
-    if (folders.length > 0) {
+    // 僅允許拖曳已 Pin 的分組
+    const pinnedFolders = source.filter(
+      (item): item is RecentFolderElement => item.kind === 'folder' && item.isPinned
+    );
+    if (pinnedFolders.length > 0) {
       treeDataTransfer.set(
         this.dragMimeTypes[0],
-        new vscode.DataTransferItem(folders.map((f) => f.folderKey))
+        new vscode.DataTransferItem(pinnedFolders.map((f) => f.folderKey))
       );
     }
   }
@@ -29,24 +40,19 @@ export class RecentTreeDragAndDropController implements vscode.TreeDragAndDropCo
     const draggedKeys: string[] = transferItem.value;
     if (!Array.isArray(draggedKeys) || draggedKeys.length === 0) return;
 
-    let currentOrder = [...this.manager.getFolderManualOrder()];
+    const currentOrder = this.manager.getPinnedGroupOrder();
 
-    // 移除已存在的拖曳項目
-    currentOrder = currentOrder.filter((k) => !draggedKeys.includes(k));
-
-    if (target && target.kind === 'folder') {
-      const targetIndex = currentOrder.indexOf(target.folderKey);
-      if (targetIndex !== -1) {
-        currentOrder.splice(targetIndex, 0, ...draggedKeys);
-      } else {
-        currentOrder.push(...draggedKeys);
-      }
-    } else {
-      currentOrder.push(...draggedKeys);
+    // 落點必須是已 Pin 的分組；未 Pin 分組與檔案節點一律不接受拖放
+    if (target !== undefined) {
+      if (target.kind !== 'folder' || !target.isPinned) return;
     }
 
-    await this.manager.setFolderManualOrder(currentOrder);
-    await setFolderSortOrder('manual');
+    const nextOrder = moveWithinPinnedOrder(currentOrder, draggedKeys, target?.kind === 'folder' ? target.folderKey : undefined);
+    if (nextOrder.join('\u0000') === currentOrder.join('\u0000')) {
+      return;
+    }
+
+    await this.manager.setPinnedGroupOrder(nextOrder);
     this.onOrderChanged();
   }
 }

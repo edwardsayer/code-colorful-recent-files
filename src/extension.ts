@@ -1,26 +1,57 @@
+﻿import * as fs from 'node:fs';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
 import {
   getExtensionConfig,
   setColorScheme,
-  setFolderSortOrder,
   setGroupBy,
-  setGroupByDirectory,
   setHighlightMode,
   setShowColorDotIcon,
   setStyleNativeExplorer,
   setSyncWithOpenTabs,
 } from './config';
+import { registerContextMenuCommands } from './contextMenu';
 import { RecentFileDecorationProvider } from './recentFileDecorationProvider';
 import { RecentFilesManager } from './recentFilesManager';
 import { RecentTreeDataProvider } from './recentTreeDataProvider';
 import { RecentTreeDragAndDropController } from './treeDragAndDrop';
 import { RECENT_FOLDER_SCHEME, RECENT_SCHEME, RecentFileElement } from './types';
+import { decideHeatTokensReady, setHeatTokensReady } from './util/color';
 import { initLogger, logInfo } from './util/log';
 import { DummyFileSystemProvider } from './util/virtualFs';
+
+/**
+ * 判斷本次視窗的 heat token 是否已可用。
+ *
+ * 以「擴充套件安裝時間（package.json mtime）」與「Extension Host 啟動時間」比較：
+ * 安裝時間晚於啟動時間（含容差）＝ 本次啟動後才安裝 → token 尚未套用 → 使用 fallback。
+ * 無法取得任一時間時，保守回傳 false（走 fallback，保證至少有顏色）。
+ */
+function resolveHeatTokensReady(context: vscode.ExtensionContext): boolean {
+  try {
+    const stat = fs.statSync(path.join(context.extension.extensionPath, 'package.json'));
+    const installedAtMs = stat.mtimeMs;
+    const hostStartMs = Date.now() - process.uptime() * 1000;
+    const ready = decideHeatTokensReady(installedAtMs, hostStartMs);
+    logInfo(
+      `heat tokens ready=${ready} (installedAt=${new Date(installedAtMs).toISOString()}, hostStart=${new Date(hostStartMs).toISOString()})`
+    );
+    return ready;
+  } catch (err) {
+    logInfo('Failed to determine heat token availability; falling back to built-in colors.');
+    return false;
+  }
+}
 
 export function activate(context: vscode.ExtensionContext): void {
   initLogger(context);
   logInfo('Activating Colorful Recent Files extension...');
+
+  // VS Code 只在視窗啟動時把已安裝擴充套件的 `contributes.colors` 納入主題 CSS。
+  // 若本套件是在本次視窗啟動後才（重新）安裝，heat token 尚未存在於 CSS，
+  // 必須暫時改用內建且不透明的 token，否則 FileDecoration 會完全不上色。
+  // 判斷依據：安裝時間（package.json mtime）是否早於 Extension Host 啟動時間。
+  setHeatTokensReady(resolveHeatTokensReady(context));
 
   // 註冊虛擬 FileSystemProvider，使 VS Code FileDecoration 系統能辨識自訂 scheme 並正常賦予色彩與標注
   const dummyFs = new DummyFileSystemProvider();
@@ -61,6 +92,9 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration((e) => {
       if (e.affectsConfiguration('codeColorfulRecentFiles')) {
+        // 設定可能影響排序與截斷（如 maxRecentFiles），必須先作廢快取，
+        // 否則畫面會沿用舊設定直到 reload 或下一次資料事件。
+        manager.invalidateCache();
         treeDataProvider.refresh();
         decorationProvider.fireChange();
       }
@@ -70,6 +104,7 @@ export function activate(context: vscode.ExtensionContext): void {
   // 監聽顏色主題變更，確保切換深色/淺色主題時小圓點與標記能即時適應
   context.subscriptions.push(
     vscode.window.onDidChangeActiveColorTheme(() => {
+      setHeatTokensReady(true);
       treeDataProvider.refresh();
       decorationProvider.fireChange();
     })
@@ -84,169 +119,62 @@ export function activate(context: vscode.ExtensionContext): void {
     })
   );
 
-  // 註冊指令：切換分組模式 (平鋪 None / 依目錄 Directory / 依類型 Type)
-  const cycleGroupBy = async () => {
+  // 註冊指令：選單項目。每個多選項各狀態一個指令 ID（供 package.json 依目前值顯示對應標題），行為皆為循環至下一個值。
+  const P = 'codeColorfulRecentFiles';
+  const register = (ids: string[], handler: () => Promise<void>) => {
+    for (const id of ids) {
+      context.subscriptions.push(vscode.commands.registerCommand(`${P}.${id}`, handler));
+    }
+  };
+
+  // 分組模式：None(預設) → Type → Directory
+  register(['cycleGroupByNone', 'cycleGroupByType', 'cycleGroupByDirectory'], async () => {
     const config = getExtensionConfig();
-    const nextMode = config.groupBy === 'none' ? 'directory' : (config.groupBy === 'directory' ? 'type' : 'none');
+    const nextMode = config.groupBy === 'none' ? 'type' : (config.groupBy === 'type' ? 'directory' : 'none');
     await setGroupBy(nextMode);
     treeDataProvider.refresh();
-  };
-  context.subscriptions.push(
-    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleGroupBy', cycleGroupBy),
-    vscode.commands.registerCommand('codeColorfulRecentFiles.selectGroupByNone', async () => {
-      await setGroupBy('none');
-      treeDataProvider.refresh();
-    }),
-    vscode.commands.registerCommand('codeColorfulRecentFiles.selectGroupByDirectory', async () => {
-      await setGroupBy('directory');
-      treeDataProvider.refresh();
-    }),
-    vscode.commands.registerCommand('codeColorfulRecentFiles.selectGroupByType', async () => {
-      await setGroupBy('type');
-      treeDataProvider.refresh();
-    }),
-    vscode.commands.registerCommand('codeColorfulRecentFiles.setGroupByNone', async () => {
-      await setGroupBy('none');
-      treeDataProvider.refresh();
-    }),
-    vscode.commands.registerCommand('codeColorfulRecentFiles.setGroupByDirectory', async () => {
-      await setGroupBy('directory');
-      treeDataProvider.refresh();
-    }),
-    vscode.commands.registerCommand('codeColorfulRecentFiles.setGroupByType', async () => {
-      await setGroupBy('type');
-      treeDataProvider.refresh();
-    })
-  );
+  });
 
-  // 註冊指令：切換目錄分組 (向後相容)
-  const toggleGroupByDirectory = async () => {
+  // 配色方案：rankSpectrum(預設) → timeBucket → plainText
+  register(['cycleColorSchemeRank', 'cycleColorSchemeBucket', 'cycleColorSchemePlainText'], async () => {
     const config = getExtensionConfig();
-    await setGroupByDirectory(!config.groupByDirectory);
-    treeDataProvider.refresh();
-  };
-  context.subscriptions.push(
-    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleGroupByDirectory', toggleGroupByDirectory),
-    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleGroupByDirectoryOn', toggleGroupByDirectory),
-    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleGroupByDirectoryOff', toggleGroupByDirectory)
-  );
-
-  // 註冊指令：切換 Sync with Open Tabs (垂直分頁雙向同步)
-  const toggleSyncWithOpenTabs = async () => {
-    const config = getExtensionConfig();
-    await setSyncWithOpenTabs(!config.syncWithOpenTabs);
-    treeDataProvider.refresh();
-    decorationProvider.fireChange();
-  };
-  context.subscriptions.push(
-    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleSyncWithOpenTabs', toggleSyncWithOpenTabs),
-    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleSyncWithOpenTabsOn', toggleSyncWithOpenTabs),
-    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleSyncWithOpenTabsOff', toggleSyncWithOpenTabs)
-  );
-
-  // 註冊指令：切換資料夾排序模式 (最新 latest / 名稱 name / 手動 manual)
-  const cycleFolderSortOrder = async () => {
-    const config = getExtensionConfig();
-    const nextOrder = config.folderSortOrder === 'latest' ? 'name' : (config.folderSortOrder === 'name' ? 'manual' : 'latest');
-    await setFolderSortOrder(nextOrder);
-    treeDataProvider.refresh();
-  };
-  context.subscriptions.push(
-    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleFolderSortOrder', cycleFolderSortOrder),
-    vscode.commands.registerCommand('codeColorfulRecentFiles.setFolderSortLatest', async () => {
-      await setFolderSortOrder('latest');
-      treeDataProvider.refresh();
-    }),
-    vscode.commands.registerCommand('codeColorfulRecentFiles.setFolderSortName', async () => {
-      await setFolderSortOrder('name');
-      treeDataProvider.refresh();
-    }),
-    vscode.commands.registerCommand('codeColorfulRecentFiles.setFolderSortManual', async () => {
-      await setFolderSortOrder('manual');
-      treeDataProvider.refresh();
-    })
-  );
-
-  // 註冊指令：切換配色方案 (彩虹順位 rankSpectrum -> 時間階梯 timeBucket -> 純文字 plainText)
-  const cycleColorScheme = async () => {
-    const config = getExtensionConfig();
-    let nextScheme: 'rankSpectrum' | 'timeBucket' | 'plainText' = 'rankSpectrum';
-    if (config.colorScheme === 'rankSpectrum') {
-      nextScheme = 'timeBucket';
-    } else if (config.colorScheme === 'timeBucket') {
-      nextScheme = 'plainText';
-    } else {
-      nextScheme = 'rankSpectrum';
-    }
+    const nextScheme = config.colorScheme === 'rankSpectrum'
+      ? 'timeBucket'
+      : (config.colorScheme === 'timeBucket' ? 'plainText' : 'rankSpectrum');
     await setColorScheme(nextScheme);
     treeDataProvider.refresh();
     decorationProvider.fireChange();
-  };
-  context.subscriptions.push(
-    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleColorScheme', cycleColorScheme),
-    vscode.commands.registerCommand('codeColorfulRecentFiles.setColorSchemeRank', async () => {
-      await setColorScheme('rankSpectrum');
-      treeDataProvider.refresh();
-      decorationProvider.fireChange();
-    }),
-    vscode.commands.registerCommand('codeColorfulRecentFiles.setColorSchemeBucket', async () => {
-      await setColorScheme('timeBucket');
-      treeDataProvider.refresh();
-      decorationProvider.fireChange();
-    }),
-    vscode.commands.registerCommand('codeColorfulRecentFiles.setColorSchemePlainText', async () => {
-      await setColorScheme('plainText');
-      treeDataProvider.refresh();
-      decorationProvider.fireChange();
-    }),
-    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleColorSchemeRank', cycleColorScheme),
-    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleColorSchemeBucket', cycleColorScheme)
-  );
+  });
 
-  // 註冊指令：切換色彩小圓點圖示 (支援做法 C：尾端簡潔勾選符號)
-  const toggleShowColorDotIcon = async () => {
+  // 時間基準：lastAccess(預設) → lastModified
+  register(['cycleHighlightModeAccess', 'cycleHighlightModeModified'], async () => {
     const config = getExtensionConfig();
-    await setShowColorDotIcon(!config.showColorDotIcon);
-    treeDataProvider.refresh();
-  };
-  context.subscriptions.push(
-    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleShowColorDotIcon', toggleShowColorDotIcon),
-    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleShowColorDotIconOn', toggleShowColorDotIcon),
-    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleShowColorDotIconOff', toggleShowColorDotIcon)
-  );
-
-  // 註冊指令：切換原生總管裝飾 (支援尾端方括號標記 [✓])
-  const toggleStyleNativeExplorer = async () => {
-    const config = getExtensionConfig();
-    await setStyleNativeExplorer(!config.styleNativeExplorer);
-    decorationProvider.fireChange();
-  };
-  context.subscriptions.push(
-    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleStyleNativeExplorer', toggleStyleNativeExplorer),
-    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleStyleNativeExplorerOn', toggleStyleNativeExplorer),
-    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleStyleNativeExplorerOff', toggleStyleNativeExplorer)
-  );
-
-  // 註冊指令：切換熱度時間基準 (支援做法 E：動態切換動作語意)
-  const toggleHighlightMode = async () => {
-    const config = getExtensionConfig();
-    const nextMode = config.highlightMode === 'lastAccess' ? 'lastModified' : 'lastAccess';
-    await setHighlightMode(nextMode);
+    await setHighlightMode(config.highlightMode === 'lastAccess' ? 'lastModified' : 'lastAccess');
     treeDataProvider.refresh();
     decorationProvider.fireChange();
-  };
-  context.subscriptions.push(
-    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleHighlightMode', toggleHighlightMode),
-    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleHighlightModeToModified', toggleHighlightMode),
-    vscode.commands.registerCommand('codeColorfulRecentFiles.toggleHighlightModeToAccess', toggleHighlightMode)
-  );
+  });
+
+  // 雙態 Toggle：On = 目前未啟用時顯示的項目，Off = 目前已啟用時顯示的項目
+  register(['toggleSyncWithOpenTabsOn', 'toggleSyncWithOpenTabsOff'], async () => {
+    await setSyncWithOpenTabs(!getExtensionConfig().syncWithOpenTabs);
+    treeDataProvider.refresh();
+    decorationProvider.fireChange();
+  });
+  register(['toggleShowColorDotIconOn', 'toggleShowColorDotIconOff'], async () => {
+    await setShowColorDotIcon(!getExtensionConfig().showColorDotIcon);
+    treeDataProvider.refresh();
+  });
+  register(['toggleStyleNativeExplorerOn', 'toggleStyleNativeExplorerOff'], async () => {
+    await setStyleNativeExplorer(!getExtensionConfig().styleNativeExplorer);
+    decorationProvider.fireChange();
+  });
 
   // 註冊指令：清除全部歷史紀錄
   context.subscriptions.push(
     vscode.commands.registerCommand('codeColorfulRecentFiles.clearHistory', async () => {
-      const message = vscode.l10n.t('confirm.clearHistory');
-      const actionClear = vscode.l10n.t('action.clear');
-      const actionCancel = vscode.l10n.t('action.cancel');
+      const message = vscode.l10n.t('Are you sure you want to clear all recent files history?');
+      const actionClear = vscode.l10n.t('Clear');
+      const actionCancel = vscode.l10n.t('Cancel');
 
       const answer = await vscode.window.showWarningMessage(
         message,
@@ -257,7 +185,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
       if (answer === actionClear) {
         await manager.clearAll();
-        vscode.window.showInformationMessage(vscode.l10n.t('info.historyCleared'));
+        vscode.window.showInformationMessage(vscode.l10n.t('Recent files history has been cleared.'));
       }
     })
   );
@@ -274,6 +202,8 @@ export function activate(context: vscode.ExtensionContext): void {
       }
     })
   );
+
+  registerContextMenuCommands(context, manager);
 
   // 註冊指令：開啟檔案 (主動更新時間記錄並將該檔案及所屬資料夾立刻置頂)
   context.subscriptions.push(
