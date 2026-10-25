@@ -2,6 +2,14 @@
 
 All notable changes to the "code-colorful-recent-files" extension will be documented in this file.
 
+## [0.3.0] - 2026-10-25
+
+### Added
+- **Drag files out of the Recent Files view.** File items can now be dragged onto the built-in Explorer, the editor, or other extensions that accept `text/uri-list` (for example *Folder Spaces*). Files are written as plain `file:` URIs.
+
+### Fixed
+- Dragging a file out previously produced an unusable `colorful-recent:` URI, because VS Code's auto-generated `text/uri-list` carries this extension's custom scheme. The drag handler now overrides it with the real `file:` path, so external drop targets can resolve it.
+
 ## [0.2.1] - 2026-10-25
 
 ### Changed

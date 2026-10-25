@@ -1,5 +1,23 @@
 [
   {
+    "uri": "file:///d%3A/GitDev/code-extensions/code-colorful-recent-files/CHANGELOG.md",
+    "fsPath": "d:\\GitDev\\code-extensions\\code-colorful-recent-files\\CHANGELOG.md",
+    "lastOpenedTime": 1792943777921,
+    "lastModifiedTime": 1792844641026.8362
+  },
+  {
+    "uri": "file:///d%3A/GitDev/code-extensions/code-colorful-recent-files/README.md",
+    "fsPath": "d:\\GitDev\\code-extensions\\code-colorful-recent-files\\README.md",
+    "lastOpenedTime": 1792943760682,
+    "lastModifiedTime": 1792685626373.102
+  },
+  {
+    "uri": "file:///d%3A/GitDev/code-extensions/code-colorful-recent-files/package.json",
+    "fsPath": "d:\\GitDev\\code-extensions\\code-colorful-recent-files\\package.json",
+    "lastOpenedTime": 1792943712861,
+    "lastModifiedTime": 1792690198232.5027
+  },
+  {
     "uri": "file:///d%3A/GitDev/code-extensions/code-colorful-recent-files/LICENSE",
     "fsPath": "d:\\GitDev\\code-extensions\\code-colorful-recent-files\\LICENSE",
     "lastOpenedTime": 1792939415668,
@@ -16,24 +34,6 @@
     "fsPath": "d:\\GitDev\\code-extensions\\code-colorful-recent-files\\esbuild.mjs",
     "lastOpenedTime": 1792939414318,
     "lastModifiedTime": 1792685501480.5356
-  },
-  {
-    "uri": "file:///d%3A/GitDev/code-extensions/code-colorful-recent-files/CHANGELOG.md",
-    "fsPath": "d:\\GitDev\\code-extensions\\code-colorful-recent-files\\CHANGELOG.md",
-    "lastOpenedTime": 1792939413871,
-    "lastModifiedTime": 1792844641026.8362
-  },
-  {
-    "uri": "file:///d%3A/GitDev/code-extensions/code-colorful-recent-files/README.md",
-    "fsPath": "d:\\GitDev\\code-extensions\\code-colorful-recent-files\\README.md",
-    "lastOpenedTime": 1792939413540,
-    "lastModifiedTime": 1792685626373.102
-  },
-  {
-    "uri": "file:///d%3A/GitDev/code-extensions/code-colorful-recent-files/package.json",
-    "fsPath": "d:\\GitDev\\code-extensions\\code-colorful-recent-files\\package.json",
-    "lastOpenedTime": 1792939366522,
-    "lastModifiedTime": 1792690198232.5027
   },
   {
     "uri": "file:///d%3A/GitDev/code-extensions/code-colorful-recent-files/src/util/color.ts",

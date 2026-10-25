@@ -24,6 +24,7 @@ A focused VS Code extension that presents your recently opened and edited files 
   - **Warm (< 2 hours)**: `heat3` with `1h` badge
   - **Day (< 24 hours)**: `heat2` with `1d` badge
   - **Older**: Neutral secondary color
+- 🖱️ **Drag Files Out**: Drag any file out of the view onto the built-in Explorer, an editor, or another extension that accepts `text/uri-list` (e.g. **Folder Spaces**). The payload is a plain `file:` URI, so the drop target sees a real filesystem path.
 - ⚡ **Local-First & Lightweight**: Stores history directly in `workspaceState`, zero network calls or external dependencies.
 
 ## Visual Styles: Native File Icons vs Color Dot Icons
