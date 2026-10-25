@@ -4,6 +4,14 @@
   "description": "%extension.description%",
   "version": "0.2.0",
   "publisher": "edwardsayer",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/edwardsayer/code-colorful-recent-files.git"
+  },
+  "homepage": "https://github.com/edwardsayer/code-colorful-recent-files#readme",
+  "bugs": {
+    "url": "https://github.com/edwardsayer/code-colorful-recent-files/issues"
+  },
   "icon": "assets/icon.png",
   "license": "MIT",
   "engines": {
@@ -648,7 +656,7 @@
     "typecheck": "tsc --noEmit",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
-    "package:vsix": "node esbuild.mjs --production && vsce package --no-rewrite-relative-links --allow-missing-repository",
+    "package:vsix": "node esbuild.mjs --production && vsce package",
     "check:project": "node scripts/check-project.mjs",
     "check": "npm run typecheck && npm run test:unit && npm run build && npm run check:project"
   },

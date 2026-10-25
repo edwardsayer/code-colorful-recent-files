@@ -3,7 +3,7 @@
 
 專為 VS Code 設計的最近檔案導覽擴充套件。在獨立的活動列（Activity Bar）中以樹狀結構呈現最近開啟與編輯的檔案，支援一鍵目錄分組，並透過原生色彩與徽章標記檔案最後活動的時間熱度。
 
-![Icon](assets/icon.svg)
+<img src="assets/icon.png" alt="Colorful Recent Files icon" width="128" />
 
 ## 核心功能
 

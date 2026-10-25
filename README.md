@@ -3,7 +3,7 @@ Language: **English** | [繁體中文](README.zh-TW.md)
 
 A focused VS Code extension that presents your recently opened and edited files in a dedicated Activity Bar TreeView. It supports one-click directory grouping and native time-based heat decoration (color badges & highlights).
 
-![Icon](assets/icon.svg)
+<img src="assets/icon.png" alt="Colorful Recent Files icon" width="128" />
 
 ## Features
 

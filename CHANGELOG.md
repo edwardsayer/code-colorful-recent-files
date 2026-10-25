@@ -2,7 +2,7 @@
 
 All notable changes to the "code-colorful-recent-files" extension will be documented in this file.
 
-## [0.2.0] - Unreleased
+## [0.2.0] - 2026-10-25
 
 ### Added
 - Simplified Chinese (zh-cn) localization for the manifest and runtime messages.
