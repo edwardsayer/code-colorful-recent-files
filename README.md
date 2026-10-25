@@ -1,5 +1,4 @@
-# Colorful Recent Files
-
+﻿# Colorful Recent Files: Vertical Tabs & History
 Language: **English** | [繁體中文](README.zh-TW.md)
 
 A focused VS Code extension that presents your recently opened and edited files in a dedicated Activity Bar TreeView. It supports one-click directory grouping and native time-based heat decoration (color badges & highlights).
@@ -16,14 +15,14 @@ A focused VS Code extension that presents your recently opened and edited files 
 - 📑 **Sync with Open Tabs (Vertical Tabs Mode)**:
   - When enabled, **only displays currently opened editor tabs**, effectively serving as a fast vertical tabs sidebar.
   - Closing tabs in the editor or removing them from the tree will hide them from the view and close the editor tab; **historical access logs are safely preserved** and fully restored when turning sync off.
-- 🔀 **Flexible Folder Sorting & Drag-and-Drop**:
-  - **Latest First**: Ordered by the most recent file recency within each folder.
-  - **By Name**: Alphabetical folder name order (A-Z).
-  - **Manual (Drag & Drop)**: Reorder folder groups directly via drag-and-drop in the treeview.
+- 📌 **Pinnable Groups with Drag-and-Drop Ordering**:
+  - Pin any Folder or Type group with the pin button on the right of the group row (or `Pin Group` in the context menu). Pinned groups stay on top and show a 📌 marker.
+  - **Pinned groups** are ordered manually: drag one pinned group onto another to reposition it. Unpinned groups can never move above pinned ones.
+  - **Unpinned groups** always follow below the pinned block, sorted by most recent activity (respecting the Time Metric setting).
 - 🎨 **Time-based Color Decorations**: Native `FileDecoration` integration maps file recency to standard theme colors:
-  - **Fresh (< 15 mins)**: `charts.green` with `●` badge
-  - **Warm (< 2 hours)**: `charts.yellow` with `1h` badge
-  - **Day (< 24 hours)**: `charts.orange` with `1d` badge
+  - **Fresh (< 15 mins)**: `heat4` with `●` badge
+  - **Warm (< 2 hours)**: `heat3` with `1h` badge
+  - **Day (< 24 hours)**: `heat2` with `1d` badge
   - **Older**: Neutral secondary color
 - ⚡ **Local-First & Lightweight**: Stores history directly in `workspaceState`, zero network calls or external dependencies.
 
@@ -51,6 +50,17 @@ This extension provides two distinct visual presentations:
 
 ---
 
+## Reading the View Menu
+
+The `...` menu in the view title uses two notations:
+
+- **Multi-choice items** (`Name: <emoji> Current ➜ Next`): the **emoji marks the current value**; the value after the arrow is **what you get when you click** (it cycles back to the first value after the last one). The next value has no emoji.
+  - `Group by: ✖️ None ➜ Type` → currently *None*; click to switch to *Type*.
+  - Items: Group by, Color Scheme, Time Metric.
+- **Toggles** (`Name` / `Name <emoji>`): a **trailing emoji means enabled**; no emoji means disabled. Click to flip.
+  - `Sync with Open Tabs` → off; `Sync with Open Tabs ✔️` → on.
+  - `Color Dot Icons 🟣`, `Style Native Explorer 🫟` follow the same rule.
+
 ## Extension Settings
 
 You can configure the extension using the following settings:
@@ -59,7 +69,6 @@ You can configure the extension using the following settings:
 | :--- | :--- | :--- | :--- |
 | `codeColorfulRecentFiles.groupBy` | `string` | `"none"` | **Grouping Mode**: `"none"` (flat list), `"directory"` (hierarchical directory grouping), or `"type"` (uppercase file extension groups). |
 | `codeColorfulRecentFiles.syncWithOpenTabs` | `boolean` | `false` | **Sync with Open Tabs**: Show only currently open editor tabs (Vertical Tabs mode). |
-| `codeColorfulRecentFiles.folderSortOrder` | `string` | `"latest"` | **Folder Sorting**: `"latest"` (most recent file inside), `"name"` (alphabetical A-Z), or `"manual"` (drag and drop order). |
 | `codeColorfulRecentFiles.showColorDotIcon` | `boolean` | `false` | **Color Dot Switch**: Render smooth colored dot icons instead of default file icons. |
 | `codeColorfulRecentFiles.groupByDirectory` | `boolean` | `false` | **Directory Grouping (Legacy)**: Extended by `groupBy`. |
 | `codeColorfulRecentFiles.colorScheme` | `string` | `"rankSpectrum"` | **Color Scheme**: `"rankSpectrum"` (smooth rainbow spectrum), `"timeBucket"` (time step intervals), or `"plainText"` (neutral text mode without heat colors, retains color dot icons). |
@@ -71,7 +80,7 @@ You can configure the extension using the following settings:
 
 ## Color Customization & Theme Patching
 
-This extension contributes 6 customizable heat color tokens (`colorfulRecentFiles.heat1` ~ `heat6`), mapped by default to standard `charts.*` colors and calibrated against official 2026 Dark and 2026 Light standards.
+This extension contributes 6 customizable heat color tokens (`colorfulRecentFiles.heat1` ~ `heat6`) with fixed, theme-independent defaults calibrated against the official 2026 Dark and 2026 Light standards.
 
 If you are using a third-party theme with suboptimal contrast, you can override these tokens directly with raw Hex RGB values in `settings.json`:
 
@@ -98,11 +107,6 @@ If you are using a third-party theme with suboptimal contrast, you can override 
   "colorfulRecentFiles.heat6": "#652D90"
 }
 ```
-
-## Technical Documentation
-
-- [VS Code Extension Pitfalls & Best Practices](docs/vscode-extension-pitfalls-and-best-practices.md)
-- [External Projects Architectural Analysis](docs/external-projects-architectural-analysis.md)
 
 ## Commands
 

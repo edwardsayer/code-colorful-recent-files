@@ -1,5 +1,4 @@
-# 彩色最近檔案 (Colorful Recent Files)
-
+﻿# 彩色最近檔案：垂直分頁與歷史紀錄 (Colorful Recent Files: Vertical Tabs & History)
 語言：[English](README.md) | **繁體中文**
 
 專為 VS Code 設計的最近檔案導覽擴充套件。在獨立的活動列（Activity Bar）中以樹狀結構呈現最近開啟與編輯的檔案，支援一鍵目錄分組，並透過原生色彩與徽章標記檔案最後活動的時間熱度。
@@ -16,14 +15,14 @@
 - 📑 **同步開啟分頁（Vertical Tabs 模式）**：
   - 開啟時**僅呈現目前編輯器開啟的分頁**，即時作為垂直分頁清單使用。
   - 當分頁在編輯器中關閉或在樹狀清單中點擊關閉按鈕時，自動從清單隱藏並連動關閉分頁；**注意：此操作純屬視圖過濾，不會抹除底層持久化存取歷史**，關閉同步時即可完整還原全量歷史。
-- 🔀 **多元資料夾排序與拖曳重排**：
-  - **最新優先（Latest First）**：預設依組內最新檔案的存取時間排序。
-  - **名稱字母（By Name）**：依資料夾／類別名稱字母（A-Z）排序。
-  - **手動拖曳（Manual Drag & Drop）**：可直接在樹狀檢視中拖曳資料夾節點調整順序。
+- 📌 **可分組 Pin 與拖曳排序**：
+  - 分組列右方可 Pin 任一資料夾或類型分組（或使用右鍵選單「Pin 此分組」）；已 Pin 的分組固定在最上方並顯示 📌 標記。
+  - **已 Pin 分組**採手動排序：把已 Pin 的分組拖到另一個已 Pin 分組上即可調整位置；未 Pin 的分組永遠不會被拖到已 Pin 分組之上。
+  - **未 Pin 分組**一律接在已 Pin 區塊之後，依最近活動時間排序（跟隨「時間基準」設定）。
 - 🎨 **依時間色彩標記 (Heatmap)**：結合 VS Code 原生 `FileDecoration`，根據時間距離套用標準主題色：
-  - **最新熱門 (< 15 分鐘)**：`charts.green`（鮮綠色）搭配 `●` 徽章
-  - **本日近期 (< 2 小時)**：`charts.yellow`（亮黃色）搭配 `1h` 徽章
-  - **本日稍早 (< 24 小時)**：`charts.orange`（暖橘色）搭配 `1d` 徽章
+  - **最新熱門 (< 15 分鐘)**：`heat4`（鮮綠色）搭配 `●` 徽章
+  - **本日近期 (< 2 小時)**：`heat3`（亮黃色）搭配 `1h` 徽章
+  - **本日稍早 (< 24 小時)**：`heat2`（暖橘色）搭配 `1d` 徽章
   - **更久以前**：一般中性次要文字顏色
 - ⚡ **Local-First 本機優先**：歷史記錄直接持久化於 `workspaceState`，零外部依賴、無任何遠端網路請求。
 
@@ -51,6 +50,17 @@
 
 ---
 
+## 檢視選單讀法
+
+檢視標題列的 `...` 選單有兩種表示法：
+
+- **多選項項目**（`名稱: <emoji> 目前值 ➜ 下一個值`）：**有 emoji 的是目前值**，箭頭後面是**點擊後會切換到的值**（最後一項會循環回第一項），下一個值不加 emoji。
+  - `分組模式: ✖️ 無 ➜ 類型` → 目前為「無」，點擊後切換為「類型」。
+  - 包含：分組模式、色彩方案、時間基準。
+- **開關**（`名稱` / `名稱 <emoji>`）：**名稱後面有 emoji 代表已啟用**，沒有 emoji 代表未啟用，點擊即切換。
+  - `同步開啟分頁` → 關閉；`同步開啟分頁 ✔️` → 開啟。
+  - `色彩小圓點 🟣`、`套用原生檔案總管 🫟` 規則相同。
+
 ## 設定選項 (Configuration)
 
 您可以在 VS Code 的 `settings.json` 中調整以下設定：
@@ -59,7 +69,6 @@
 | :--- | :--- | :--- | :--- |
 | `codeColorfulRecentFiles.groupBy` | `string` | `"none"` | **分組模式**：`"none"` (平鋪清單)、`"directory"` (依目錄階層分組) 或 `"type"` (依大寫副檔名字母分組)。 |
 | `codeColorfulRecentFiles.syncWithOpenTabs` | `boolean` | `false` | **同步開啟分頁**：是否僅顯示當前編輯器開啟的分頁（垂直分頁 Vertical Tabs 模式）。 |
-| `codeColorfulRecentFiles.folderSortOrder` | `string` | `"latest"` | **資料夾排序方式**：`"latest"` (最新優先)、`"name"` (名稱 A-Z) 或 `"manual"` (手動拖曳順序)。 |
 | `codeColorfulRecentFiles.showColorDotIcon` | `boolean` | `false` | **色彩小圓點開關**：是否以色彩向量圓點取代預設檔案圖示。 |
 | `codeColorfulRecentFiles.groupByDirectory` | `boolean` | `false` | **依目錄分組 (相容舊設定)**：已由 `groupBy` 擴充。 |
 | `codeColorfulRecentFiles.colorScheme` | `string` | `"rankSpectrum"` | **色彩方案**：`"rankSpectrum"` (彩虹順位連續光譜)、`"timeBucket"` (時間階梯分級) 或 `"plainText"` (純文字中性模式，文字/序號/檔案數不著色，不影響彩色圓點)。 |
@@ -71,7 +80,7 @@
 
 ## 自訂色彩與跨主題 Patch (Color Customization)
 
-本套件原生註冊 6 個熱度色彩 Token（`colorfulRecentFiles.heat1` ~ `heat6`），預設綁定經典 `charts.*` 系列，並於官方 2026 Dark 與 2026 Light 深度調校。
+本套件原生註冊 6 個熱度色彩 Token（`colorfulRecentFiles.heat1` ~ `heat6`），預設為與 Color Theme 脫鉤的固定色票，並於官方 2026 Dark 與 2026 Light 深度調校。
 
 若您使用的是第三方主題，且希望手動覆寫為最舒服的色彩，可直接在 VS Code 的 `settings.json` 中的 `workbench.colorCustomizations` 指定真實 RGB Hex 色碼：
 
@@ -98,11 +107,6 @@
   "colorfulRecentFiles.heat6": "#652D90"
 }
 ```
-
-## 研發與技術文件
-
-- [VS Code 擴充套件開發陷阱與最佳實務指南](docs/vscode-extension-pitfalls-and-best-practices.md)
-- [外部開源專案架構與設計調研筆記](docs/external-projects-architectural-analysis.md)
 
 ## 貢獻指令
 
