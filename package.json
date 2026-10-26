@@ -1,5 +1,5 @@
 {
-  "name": "code-colorful-recent-files",
+  "name": "colorful-recent-files",
   "displayName": "%extension.displayName%",
   "description": "%extension.description%",
   "version": "0.3.2",
@@ -112,14 +112,14 @@
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "code-colorful-recent-files",
+          "id": "colorful-recent-files",
           "title": "%container.title%",
           "icon": "assets/clockface.svg"
         }
       ]
     },
     "views": {
-      "code-colorful-recent-files": [
+      "colorful-recent-files": [
         {
           "id": "codeColorfulRecentFiles.recentView",
           "name": "%view.recentView.name%",
@@ -656,7 +656,7 @@
     "typecheck": "tsc --noEmit",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
-    "package:vsix": "node esbuild.mjs --production && vsce package",
+    "package:vsix": "node esbuild.mjs --production && node scripts/pack.mjs",
     "check:project": "node scripts/check-project.mjs",
     "check": "npm run typecheck && npm run test:unit && npm run build && npm run check:project"
   },

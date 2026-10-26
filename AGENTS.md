@@ -2,7 +2,10 @@
 
 ## Overview
 
-`code-colorful-recent-files`（extension id `edwardsayer.code-colorful-recent-files`）：VS Code 的彩色最近檔案總管（Marketplace 顯示名稱：Colorful Recent Files: Vertical Tabs & History）。在專屬 Activity Bar 容器中呈現當前工作區最近開啟或編輯過的檔案，支援扁平／目錄分組切換與原生時間熱度色彩標記。
+`colorful-recent-files`（extension id `edwardsayer.colorful-recent-files`）：VS Code 的彩色最近檔案總管（Marketplace 顯示名稱：Colorful Recent Files: Vertical Tabs & History）。在專屬 Activity Bar 容器中呈現當前工作區最近開啟或編輯過的檔案，支援扁平／目錄分組切換與原生時間熱度色彩標記。
+
+> **名稱說明**：`name`（identity 後半）、Activity Bar container id 與 `contributes.views` 的 key 三者必須一致，皆為 `colorful-recent-files`；`view id`（`codeColorfulRecentFiles.recentView`）、所有命令 id、設定鍵前綴（`codeColorfulRecentFiles`）與 `l10n` bundle **維持不變**，不受 identity 名稱影響。產品資料夾、GitHub repo 與 `dev/` junction 仍名為 `code-colorful-recent-files`，與 identity 無需一致。
+> **打包檔名**：`npm run package:vsix` 走 `scripts/pack.mjs`，固定輸出 `colorful-recent-files-<version>.vsix`（不依賴 shell 變數展開）。
 
 產品願景與 Stage 計畫見私有規劃：
 - `dev/planning/TODO.md`（唯一 canonical Stage 主控）
@@ -37,11 +40,7 @@
 6. **inline 動作只在 hover 顯示**：`view/item/context` 的 `group: "inline"` 按鈕無法常駐顯示（VS Code 原生行為，無 API 可改）。因此已 Pin 的常駐視覺提示用節點 `description` 的 📌；右側 `$(pin)`／`$(pinned)` 切換鈕為 hover 顯示。
 7. **拖曳：可拖到編輯器，但拖不進原生 Explorer（平台硬限制，勿再嘗試）**
 
-   `RecentTreeDragAndDropController.handleDrag` 會把檔案節點以真實 `file:` URI 寫入 `text/uri-list` 與 `application/vnd.code.uri-list`（多檔以 `
-` 分隔——**不可改用 `
-`**，VS Code 的 uriList 實作是 `split('
-')`，用 `
-` 會讓多個 URI 黏成一個無效路徑，但 `vscode.Uri.parse` 仍回 `scheme==='file'`，屬靜默失效）。拖到編輯器或接受 `text/uri-list` 的落點可行。
+   `RecentTreeDragAndDropController.handleDrag` 會把檔案節點以真實 `file:` URI 寫入 `text/uri-list` 與 `application/vnd.code.uri-list`（多檔以 `\r\n` 分隔——**不可改用 `\n`**，VS Code 的 uriList 實作是 `split('\r\n')`，用 `\n` 會讓多個 URI 黏成一個無效路徑，但 `vscode.Uri.parse` 仍回 `scheme==='file'`，屬靜默失效）。拖到編輯器或接受 `text/uri-list` 的落點可行。
 
    **但原生 File Explorer 一律拒絕**，且這與本套件的 `resourceUri` scheme 或 MIME 宣告**無關**。VS Code 核心 `workbench.desktop.main.js` 的 FileExplorer `handleDragOver` 內有：
 
