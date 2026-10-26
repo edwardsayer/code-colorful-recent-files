@@ -77,3 +77,54 @@ npm run package:vsix    # 打包產出 vsix
 - `npm run check` 全綠（typecheck + unit + build + check:project）。
 - 支援目錄分組與扁平清單即時切換。
 - 最近檔案時間熱度色彩正確賦予。
+
+## Git commit 訊息規範（強制）
+
+**所有 commit 訊息一律使用英文**，遵循 [Conventional Commits](https://www.conventionalcommits.org/) 1.0.0。文件、註解、對話可用中文，但 commit 訊息不得使用中文（含標題與內文）。
+
+### 格式
+
+```text
+<type>(<scope>): <subject>
+
+<body>
+
+<footer>
+```
+
+- **`type`（必填）**：`feat`、`fix`、`docs`、`style`、`refactor`、`perf`、`test`、`build`、`ci`、`chore`、`revert`
+- **`scope`（選填）**：受影響區域，例如 `drag`、`menu`、`i18n`、`packaging`、`release`
+- **`subject`（必填）**：英文祈使句、全小寫開頭、**句尾不加句號**、建議 ≤ 72 字元
+- **`body`（選填）**：說明動機與影響，每行 ≤ 100 字元；多段落以空行分隔
+- **`footer`（選填）**：`BREAKING CHANGE:`、`Refs:`、`Closes:` 等
+
+### 規則
+
+1. **一個 commit 一件事**：不要把功能、重構、文件、版本 bump 混在同一筆；版本 bump 應與其對應的程式變更同批，或獨立為 `chore(release):`。
+2. **subject 描述「做了什麼」，body 描述「為什麼」**。不要用 `update files`、`fix bug` 這類無資訊量的描述。
+3. **破壞性變更**必須在 `type` 後加 `!`（如 `feat(api)!:`）並在 footer 寫 `BREAKING CHANGE:` 說明。
+4. **不得**在訊息中放使用者個資、token、路徑中的使用者名稱或內部 URL。
+5. 若 commit 對應到 pre-release gate，於 footer 註明 gate 記錄路徑，例如 `Refs: dev/tests/pre-release/0.3.2/decision.md`。
+
+### 範例
+
+```text
+fix(drag): declare vnd.code.uri-list in dragMimeTypes and enable multi-select
+
+The 0.3.1 release wrote `application/vnd.code.uri-list` without declaring it
+in `dragMimeTypes`. VS Code only creates drag-phase placeholders for declared
+types, so the extra write was invisible to drop targets and logged
+`does not declare them in dragMimeTypes` on every drag.
+
+Declare the MIME and enable `canSelectMany` so multi-file drag works.
+
+Refs: dev/tests/pre-release/0.3.2/decision.md
+```
+
+```text
+docs(readme): rewrite README with screenshots in en, zh-TW and zh-CN
+```
+
+```text
+chore(release): bump version to 0.3.2
+```

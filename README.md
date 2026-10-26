@@ -1,95 +1,89 @@
 ﻿# Colorful Recent Files: Vertical Tabs & History
-Language: **English** | [繁體中文](README.zh-TW.md)
 
-A focused VS Code extension that presents your recently opened and edited files in a dedicated Activity Bar TreeView. It supports one-click directory grouping and native time-based heat decoration (color badges & highlights).
+Language: **English** | [繁體中文](README.zh-TW.md) | [简体中文](README.zh-CN.md)
+
+A focused VS Code extension that presents your recently opened and edited files in a dedicated Activity Bar TreeView, with native time-based heat decoration, three grouping modes, and a vertical-tabs mode.
 
 <img src="assets/icon.png" alt="Colorful Recent Files icon" width="128" />
 
+![Recent Files list view](assets/screenshots/01-list-view.png)
+
 ## Features
 
-- 🕒 **Track Recent Files Automatically**: Intelligently monitors active editor switches, opened documents, and saved modifications.
-- 📁 **Three Grouping Modes (Flat / Directory / Type)**:
-  - **Flat**: Chronological recent files list.
-  - **Directory**: Hierarchical tree grouped by folder paths.
-  - **Type (Extension)**: Grouped by file extensions or view types in uppercase (e.g. `TS`, `JSON`, `MD`, `OTHER`).
-- 📑 **Sync with Open Tabs (Vertical Tabs Mode)**:
-  - When enabled, **only displays currently opened editor tabs**, effectively serving as a fast vertical tabs sidebar.
-  - Closing tabs in the editor or removing them from the tree will hide them from the view and close the editor tab; **historical access logs are safely preserved** and fully restored when turning sync off.
-- 📌 **Pinnable Groups with Drag-and-Drop Ordering**:
-  - Pin any Folder or Type group with the pin button on the right of the group row (or `Pin Group` in the context menu). Pinned groups stay on top and show a 📌 marker.
-  - **Pinned groups** are ordered manually: drag one pinned group onto another to reposition it. Unpinned groups can never move above pinned ones.
-  - **Unpinned groups** always follow below the pinned block, sorted by most recent activity (respecting the Time Metric setting).
-- 🎨 **Time-based Color Decorations**: Native `FileDecoration` integration maps file recency to standard theme colors:
-  - **Fresh (< 15 mins)**: `heat4` with `●` badge
-  - **Warm (< 2 hours)**: `heat3` with `1h` badge
-  - **Day (< 24 hours)**: `heat2` with `1d` badge
-  - **Older**: Neutral secondary color
-- 🖱️ **Drag Files Out**: Drag a file out of the view onto an editor or any drop target that accepts `text/uri-list`. The payload is a plain `file:` URI, so the drop target sees a real filesystem path.
+- 🕒 **Automatic tracking**: records files when you switch to, open, or save them. History is stored in `workspaceState` — no network access, no external service.
+- 📑 **Vertical tabs (Sync with Open Tabs)**: when enabled, the view lists **only your open editor tabs**, so it works as a fast vertical tab bar. Closing a tab from the view closes the editor tab too; your historical access log is preserved and reappears when you turn sync off.
+- 📁 **Three grouping modes**:
+  - **Flat** — a single recent-files list.
+  - **Directory** — grouped by folder path.
+  - **Type** — grouped by extension in uppercase (`TS`, `JSON`, `MD`, `OTHER`). Pure-numeric extensions are bucketed by length: 1–3 digits, 4–6 digits, 7+ digits.
+- 📌 **Pinnable groups with manual ordering**: hover a Folder or Type group and click the inline pin button that appears on the right of the group row. Pinned groups move to the top, show a 📌 marker, and keep a manual order you can drag to change. Unpinned groups always follow below the pinned block, sorted by most recent activity (following your Time Metric setting).
+- 🎨 **Three color schemes**: `rankSpectrum` (default, smooth rainbow by rank), `timeBucket` (age-based steps), or `plainText` (neutral text, color dots only).
+- 🖱️ **Multi-select and drag out**: `Ctrl`/`Cmd`-click or `Shift`-click several files, then drag them to an editor or any drop target that accepts `text/uri-list`. The payload is plain `file:` URIs (one per line, CRLF-separated, deduplicated), so the target sees real filesystem paths.
   - **Not supported: the built-in File Explorer.** This is a hard VS Code platform limitation, not an extension bug — the Explorer rejects any in-window tree drag at the `dragover` stage (`if (o instanceof Lvt) return !1;` in `workbench.desktop.main.js`), and no MIME or `resourceUri` change can bypass it. To move files between folders, cut and paste in the Explorer instead.
-- ⚡ **Local-First & Lightweight**: Stores history directly in `workspaceState`, zero network calls or external dependencies.
+- 🗂️ **Rich context menu**: close/pin/split/move actions that mirror the editor tab menu in Sync mode, plus reveal, terminal, find-in-folder, and copy-path actions.
+- 🎨 **Native decorations everywhere (optional)**: turn on **Style Native Explorer** to apply the same heat colors to the built-in Explorer tree and editor tabs.
 
-## Visual Styles: Native File Icons vs Color Dot Icons
+## Screenshots
 
-> **Rank numbers appear exactly once.** The file item's description shows only the relative time (e.g. `just now`); the rank is drawn by the native `FileDecoration` badge on the far right of the row. When **Style Native Explorer** is on, the same decoration is also applied to the built-in Explorer and editor tabs — there it shows **color only, without the rank badge**, so it never collides with file diagnostics or Git indicators.
+| Flat list | Directory grouping | Type grouping |
+|---|---|---|
+| ![Flat](assets/screenshots/01-list-view.png) | ![Directory](assets/screenshots/02-group-directory.png) | ![Type](assets/screenshots/03-group-type.png) |
 
+| Pinned groups | Color dot icons | Plain text scheme |
+|---|---|---|
+| ![Pinned](assets/screenshots/04-pinned-groups.png) | ![Color dots](assets/screenshots/05-color-dot-icons.png) | ![Plain text](assets/screenshots/06-plain-text.png) |
 
-This extension provides two distinct visual presentations:
+| Vertical tabs mode | View menu | Context menu |
+|---|---|---|
+| ![Sync](assets/screenshots/07-sync-open-tabs.png) | ![View menu](assets/screenshots/08-view-menu.png) | ![Context menu](assets/screenshots/09-context-menu.png) |
 
-1. **Native File Icons (Default)**:
-   Retains your VS Code File Icon Theme (e.g., Seti, Material), while recency and timing are displayed via native `FileDecoration` descriptions (`#Rank • Relative Time`, e.g., `#1 • just now`).
-2. **Color Dot Icons (`showColorDotIcon`)**:
-   Replaces file icons in the treeview with clean, smooth SVG color dots. The colors use piecewise linear interpolation and automatically adapt between **2026 Dark** (soft pastels) and **2026 Light** (high-contrast jewels).
+## Rank numbers appear exactly once
 
-### How to Enable Color Dot Icons?
+The file item's description shows only the relative time (e.g. `just now`, `11m`, `13h`). The rank is drawn by the native `FileDecoration` badge on the far right of the row — it is not repeated in the text.
 
-- **Option 1: Via VS Code Settings GUI**
-  1. Open Settings (`Ctrl + ,` or `Cmd + ,` on macOS).
-  2. Search for: `Colorful Recent Files: Show Color Dot Icon`.
-  3. Check the box for "**Show Color Dot Icon**".
+When **Style Native Explorer** is on, the same decoration is applied to the built-in Explorer and to editor tabs, but **color only, without the rank badge**, so it never collides with file diagnostics or Git indicators.
 
-- **Option 2: Via `settings.json`**
-  Add the following entry to your `settings.json`:
+## Visual styles: native file icons vs color dots
+
+1. **Native file icons (default)**: keeps your VS Code file icon theme (Seti, Material, …). Recency is shown by the decoration color and the rank badge.
+2. **Color dot icons** (`showColorDotIcon`): replaces file icons in the view with smooth SVG color dots. Dot colors use piecewise linear interpolation and adapt to light and dark themes.
+
+To enable color dots:
+
+- **Settings UI**: open Settings (`Ctrl+,` / `Cmd+,`), search for `Colorful Recent Files: Show Color Dot Icon`, and tick the box.
+- **`settings.json`**:
   ```json
   "codeColorfulRecentFiles.showColorDotIcon": true
   ```
 
----
-
-## Reading the View Menu
+## Reading the view menu
 
 The `...` menu in the view title uses two notations:
 
-- **Multi-choice items** (`Name: <emoji> Current ➜ Next`): the **emoji marks the current value**; the value after the arrow is **what you get when you click** (it cycles back to the first value after the last one). The next value has no emoji.
+- **Multi-choice items** (`Name: <emoji> Current ➜ Next`): the **emoji marks the current value**; the value after the arrow is **what you get when you click**, and it cycles back to the first value after the last one.
   - `Group by: ✖️ None ➜ Type` → currently *None*; click to switch to *Type*.
   - Items: Group by, Color Scheme, Time Metric.
 - **Toggles** (`Name` / `Name <emoji>`): a **trailing emoji means enabled**; no emoji means disabled. Click to flip.
   - `Sync with Open Tabs` → off; `Sync with Open Tabs ✔️` → on.
-  - `Color Dot Icons 🟣`, `Style Native Explorer 🫟` follow the same rule.
+  - `Color Dot Icons 🟣` and `Style Native Explorer 🫟` follow the same rule.
 
-## Extension Settings
-
-You can configure the extension using the following settings:
+## Settings
 
 | Setting | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `codeColorfulRecentFiles.groupBy` | `string` | `"none"` | **Grouping Mode**: `"none"` (flat list), `"directory"` (hierarchical directory grouping), or `"type"` (uppercase file extension groups). |
-| `codeColorfulRecentFiles.syncWithOpenTabs` | `boolean` | `false` | **Sync with Open Tabs**: Show only currently open editor tabs (Vertical Tabs mode). |
-| `codeColorfulRecentFiles.showColorDotIcon` | `boolean` | `false` | **Color Dot Switch**: Render smooth colored dot icons instead of default file icons. |
-| `codeColorfulRecentFiles.groupByDirectory` | `boolean` | `false` | **Directory Grouping (Legacy)**: Extended by `groupBy`. |
-| `codeColorfulRecentFiles.colorScheme` | `string` | `"rankSpectrum"` | **Color Scheme**: `"rankSpectrum"` (smooth rainbow spectrum), `"timeBucket"` (time step intervals), or `"plainText"` (neutral text mode without heat colors, retains color dot icons). |
-| `codeColorfulRecentFiles.styleNativeExplorer` | `boolean` | `false` | **Native Explorer Styling**: Apply colorful decorations to the native VS Code Explorer as well (default false for clean separation). |
-| `codeColorfulRecentFiles.maxRecentFiles` | `number` | `50` | **History Limit**: Maximum number of recent files to retain (5 ~ 500). |
-| `codeColorfulRecentFiles.highlightMode` | `string` | `"lastAccess"` | **Time Metric**: `"lastAccess"` (open/focus) or `"lastModified"` (edit/save). |
+| `codeColorfulRecentFiles.groupBy` | `string` | `"none"` | Grouping mode: `"none"` (flat), `"directory"`, or `"type"` (uppercase extension groups). |
+| `codeColorfulRecentFiles.syncWithOpenTabs` | `boolean` | `false` | Show only currently open editor tabs (vertical tabs mode). |
+| `codeColorfulRecentFiles.showColorDotIcon` | `boolean` | `false` | Render colored dot icons instead of the file icon theme's icons. |
+| `codeColorfulRecentFiles.colorScheme` | `string` | `"rankSpectrum"` | `"rankSpectrum"` (rainbow by rank), `"timeBucket"` (age-based steps), or `"plainText"` (neutral text, keeps color dots). |
+| `codeColorfulRecentFiles.styleNativeExplorer` | `boolean` | `false` | Also decorate the built-in Explorer tree and editor tabs (color only, no rank badge). |
+| `codeColorfulRecentFiles.highlightMode` | `string` | `"lastAccess"` | Time metric: `"lastAccess"` (open/focus) or `"lastModified"` (edit/save). |
+| `codeColorfulRecentFiles.maxRecentFiles` | `number` | `50` | Maximum number of files kept in history (5–500). Changes apply immediately. |
+| `codeColorfulRecentFiles.groupByDirectory` | `boolean` | `false` | Legacy directory-grouping flag, superseded by `groupBy`. |
 
----
+## Color customization
 
-## Color Customization & Theme Patching
+This extension contributes six color tokens (`colorfulRecentFiles.heat1` … `heat6`) with fixed, theme-independent defaults, so file colors stay consistent across color themes. You can override them with `workbench.colorCustomizations`:
 
-This extension contributes 6 customizable heat color tokens (`colorfulRecentFiles.heat1` ~ `heat6`) with fixed, theme-independent defaults calibrated against the official 2026 Dark and 2026 Light standards.
-
-If you are using a third-party theme with suboptimal contrast, you can override these tokens directly with raw Hex RGB values in `settings.json`:
-
-### 🌙 Dark Theme Recommended Patch (2026 Dark Calibrated)
 ```json
 "workbench.colorCustomizations": {
   "colorfulRecentFiles.heat1": "#EF8773",
@@ -101,24 +95,46 @@ If you are using a third-party theme with suboptimal contrast, you can override 
 }
 ```
 
-### ☀️ Light Theme Recommended Patch (2026 Light High Contrast)
-```json
-"workbench.colorCustomizations": {
-  "colorfulRecentFiles.heat1": "#AD0707",
-  "colorfulRecentFiles.heat2": "#D18616",
-  "colorfulRecentFiles.heat3": "#667309",
-  "colorfulRecentFiles.heat4": "#388A34",
-  "colorfulRecentFiles.heat5": "#1A5CFF",
-  "colorfulRecentFiles.heat6": "#652D90"
-}
-```
+> **Note**: VS Code registers contributed colors only when the window starts. If you install the extension into an already-running window, colors fall back to built-in tokens for that session and switch to the heat tokens after a window reload or a color theme change.
 
 ## Commands
 
-* `Recent Files: Refresh`: Re-scan file existence and update decorations.
-* `Recent Files: Group by Directory`: Toggle hierarchical directory grouping.
-* `Recent Files: Clear History`: Clear stored recent files history for current workspace.
-* `Recent Files: Remove from History`: Remove an individual file from history.
+All commands live in the `Recent Files` category. The tables below summarize the commands you reach from the UI; the command palette exposes the toggles and cycles directly (`Refresh`, `Clear History`, `Open File`, `Remove from History`, plus the `Group by` / `Color Scheme` / `Time Metric` cycles and the `Sync with Open Tabs` / `Color Dot Icons` / `Style Native Explorer` toggles).
+
+**View title (`...` menu)**
+
+| Command | What it does |
+| :--- | :--- |
+| `Refresh` | Re-scan files and update decorations. |
+| `Group by: …` | Cycle the grouping mode (Flat / Directory / Type). |
+| `Sync with Open Tabs` | Toggle vertical tabs mode. |
+| `Color Scheme: …` | Cycle the color scheme (Rainbow Spectrum / Time Buckets / Plain Text). |
+| `Color Dot Icons` | Toggle colored dot icons. |
+| `Style Native Explorer` | Toggle decorating the built-in Explorer and editor tabs. |
+| `Time Metric: …` | Cycle the time metric (Access Time / Modify Time). |
+| `Clear History` | Clear the stored history for this workspace. |
+
+**Right-click on a file (Sync mode)**
+
+`Close Tab` · `Close Other Tabs` · `Close Saved Tabs` · `Close All Tabs` · `Pin / Unpin Tab` · `Open to the Side` · `Split Right` · `Split Down` · `Move to New Window` · `Remove from History` · `Reveal in Explorer` · `Reveal in OS` · `Copy Path` · `Copy Relative Path`
+
+**Right-click on a file (history mode)**
+
+`Open to the Side` · `Remove from History` · `Reveal in Explorer` · `Reveal in OS` · `Copy Path` · `Copy Relative Path`
+
+**Group row inline button**
+
+`Pin Group` / `Unpin Group` — appears on the right of a Folder or Type group row on hover. Pinning and unpinning are **inline buttons only**; they are not items in the right-click menu.
+
+**Right-click on a group**
+
+`Close Tabs in Group` (Sync mode) · `Remove Group from History` (history mode) · `Open in Terminal` · `Find in Folder` · `Reveal in Explorer` · `Copy Path`
+
+## Requirements and limitations
+
+- Requires VS Code **1.85.0** or newer; desktop only (virtual workspaces are not supported).
+- Works in untrusted workspaces: the extension only reads and writes extension state and never executes workspace code.
+- Dragging **into** the built-in File Explorer is not possible for any extension (see above).
 
 ## License
 
