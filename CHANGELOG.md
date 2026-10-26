@@ -2,7 +2,23 @@
 
 All notable changes to the "code-colorful-recent-files" extension will be documented in this file.
 
+## [0.3.2] - 2026-10-26
+
+### Added
+- **Multi-select in the Recent Files view.** The tree view now enables `canSelectMany`, so you can `Ctrl`/`Cmd`-click or `Shift`-click several files and drag them out in one gesture. Every distinct path is emitted once, separated by CRLF as required by the VS Code uri-list implementation.
+
+### Fixed
+- **Ineffective `application/vnd.code.uri-list` override (0.3.1 regression).** 0.3.1 wrote a second MIME type without declaring it in `dragMimeTypes`. VS Code only creates drag-phase placeholders for declared types, so the extra write was invisible to drop targets and logged `does not declare them in dragMimeTypes` on every drag. The type is now declared and the write takes effect.
+- **CHANGELOG accuracy (0.3.1 correction).** The 0.3.1 entry claimed to be documentation-only, but it also changed `src/treeDragAndDrop.ts` behaviour. This release records the actual behaviour change instead of describing it as documentation-only.
+
+### Verified
+- File payloads are declared correctly: `text/uri-list` and `application/vnd.code.uri-list` both carry plain `file:` URIs, and neither triggers a `dragMimeTypes` warning.
+
+> **Not verified in this release:** dropping onto **Folder Spaces** panes was not tested in this release's pre-release gate. Any drop target that accepts `text/uri-list` should work, but only the editor drop target was exercised. Cross-extension drop behaviour is not claimed here.
+
 ## [0.3.1] - 2026-10-26
+
+> ⚠️ **Correction (see 0.3.2).** The description below understates this release: besides the documentation fixes, 0.3.1 also added an `application/vnd.code.uri-list` write that was **not** declared in `dragMimeTypes`. That write had no effect and produced a VS Code warning on every drag. Fixed in 0.3.2.
 
 ### Changed
 - Corrected the drag-and-drop documentation. File items **cannot** be dropped onto the built-in **File Explorer** — that is a hard VS Code platform limitation, not something this extension can fix (see below). Dragging onto an editor or any drop target that accepts `text/uri-list` remains supported.

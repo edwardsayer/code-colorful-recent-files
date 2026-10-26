@@ -19,7 +19,14 @@ const INTERNAL_MIME = 'application/vnd.code.tree.codeColorfulRecentFiles';
  */
 export const URI_LIST_MIME = 'text/uri-list';
 
-/** VS Code 內部實際傳給樹狀落點的 MIME（由 resourceUri 推導，需與 text/uri-list 一起覆寫）。 */
+/**
+ * VS Code 內部實際傳給樹狀落點的 MIME。
+ *
+ * 必須同時列在 `dragMimeTypes`：VS Code 只會為**已宣告**的類型建立 drag 階段的
+ * 佔位 entry（`addExtensionProvidedTransferTypes()` 對 `dragMimeTypes` 逐項
+ * `setData(mime, '')`）；未宣告者雖可由本套件 `set()`，但會在 renderer log 產生
+ * `does not declare them in dragMimeTypes` warning，且對外落點看不到該類型。
+ */
 export const VND_URI_LIST_MIME = 'application/vnd.code.uri-list';
 
 /**
@@ -54,7 +61,8 @@ export function collectDraggableFileUris(source: readonly RecentTreeElement[]): 
 }
 
 export class RecentTreeDragAndDropController implements vscode.TreeDragAndDropController<RecentTreeElement> {
-  public readonly dragMimeTypes = [INTERNAL_MIME, URI_LIST_MIME];
+  // `VND_URI_LIST_MIME` 必須宣告，否則 VS Code 會警告且該 MIME 對外不可見（見常數註解）。
+  public readonly dragMimeTypes = [INTERNAL_MIME, URI_LIST_MIME, VND_URI_LIST_MIME];
   public readonly dropMimeTypes = [INTERNAL_MIME];
 
   constructor(
@@ -75,7 +83,8 @@ export class RecentTreeDragAndDropController implements vscode.TreeDragAndDropCo
     //    VS Code 會自動加入 `application/vnd.code.uri-list`，但值是從 resourceUri 推導的自訂 scheme
     //    (`colorful-recent:`)，只接受 file: 的落點無法解析。兩個 MIME 都覆寫：
     //    - `text/uri-list`：給編輯器、接受標準 MIME 的落點
-    //    - `application/vnd.code.uri-list`：VS Code 內部實際傳給樹狀落點的那一份
+    //    - `application/vnd.code.uri-list`：VS Code 內部傳給樹狀落點（含 Folder Spaces）的那一份
+    //    兩者皆已列入 `dragMimeTypes`；未宣告會產生 warning 且對外不可見。
     //    註：此覆寫無法讓拖放進入原生 File Explorer（平台層 dragover 攔截，見類別註解）。
     const fileUris = collectDraggableFileUris(source);
     if (fileUris.length > 0) {

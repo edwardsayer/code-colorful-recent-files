@@ -76,10 +76,13 @@ export function activate(context: vscode.ExtensionContext): void {
   });
 
   // 註冊 TreeView (含拖曳控制器)
+  // `canSelectMany` 必須開啟，否則 `dragMimeTypes` 的多檔序列化（`\r\n` 分隔）
+  // 與 `util/dragPaths` 的去重邏輯在 UI 上無法觸發（永遠只有單選）。
   const treeView = vscode.window.createTreeView('codeColorfulRecentFiles.recentView', {
     treeDataProvider,
     dragAndDropController: dndController,
     showCollapseAll: true,
+    canSelectMany: true,
   });
   context.subscriptions.push(treeView);
 
