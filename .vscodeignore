@@ -22,6 +22,12 @@ dist/**/*.map
 # Local backups / scratch material (never ship)
 assets/backup-box/
 
+# README screenshots (never ship)
+# README 以外掛圖形式引用（vsce 會把相對路徑改寫成 GitHub raw URL），
+# Marketplace 與 VS Code 詳情頁都從遠端載入，不讀 VSIX 內的檔案。
+# 保留在 repo 供應 README，但不進包——否則只是白白多出約 813 KB。
+assets/screenshots/
+
 # Config files not needed at runtime
 tsconfig*.json
 esbuild.mjs
