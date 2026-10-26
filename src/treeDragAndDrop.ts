@@ -11,11 +11,16 @@ const INTERNAL_MIME = 'application/vnd.code.tree.codeColorfulRecentFiles';
  * 跨 view 拖放的標準 MIME。
  *
  * VS Code 會為每個拖曳自動加入 `text/uri-list`，但內容是**本套件自訂 scheme**
- * （`colorful-recent:/...`），其他擴充套件（含原生 Explorer 與 code-folder-spaces）
- * 一律只接受 `file:` scheme，會直接忽略。因此必須在 `handleDrag` 內主動覆寫成
- * `file:` URI，拖放才會真正生效。
+ * （`colorful-recent:/...`），只接受 `file:` scheme 的落點會無法解析。
+ * 因此在 `handleDrag` 內主動覆寫成 `file:` URI。
+ *
+ * ⚠️ 覆寫只對「接受 text/uri-list 的落點」有效（例如編輯器）。
+ * 原生 File Explorer 一律拒絕，成因見下方 controller 的類別註解。
  */
 export const URI_LIST_MIME = 'text/uri-list';
+
+/** VS Code 內部實際傳給樹狀落點的 MIME（由 resourceUri 推導，需與 text/uri-list 一起覆寫）。 */
+export const VND_URI_LIST_MIME = 'application/vnd.code.uri-list';
 
 /**
  * 分組拖曳排序 + 檔案跨 view 拖出控制器。
@@ -26,11 +31,19 @@ export const URI_LIST_MIME = 'text/uri-list';
  * - 拖到空白處（target 為 undefined）＝附加到已 Pin 區塊末尾（仍排在未 Pin 之上）。
  *
  * 檔案規則：
- * - 檔案節點一律以 `file:` URI 寫入 `text/uri-list`，可拖到原生 Explorer、
- *   本套件自己的 view，或同 workspace 內其他接受 `text/uri-list` 的樹（如
- *   `code-folder-spaces`）。分組節點的 folderKey 只是目錄字串，不具檔案語意，
- *   故不輸出檔案 URI。
+ * - 檔案節點以真實 `file:` URI 寫入 `text/uri-list` 與 `application/vnd.code.uri-list`，
+ *   可拖到編輯器或其他接受 `text/uri-list` 的落點。分組節點的 folderKey 只是目錄字串，
+ *   不具檔案語意，故不輸出檔案 URI。
  * - 拖放本身不做任何檔案搬移；搬移／複製由落點那一方決定（本套件不持有檔案所有權）。
+ *
+ * ⚠️ 平台硬限制：**拖不進原生 File Explorer**。
+ * VS Code 核心 `workbench.desktop.main.js` 的 FileExplorer `handleDragOver` 內有
+ * `if (o instanceof Lvt) return !1;`，而 `Lvt`（僅含 `{elements}`）是**任何** Monaco tree
+ * 在 `onDragStart` 時寫入全域 `CurrentDragAndDropData` 的物件。只有 OS 層拖入
+ * （`f8` / `DesktopDragAndDropData`）與 Explorer 自家內部模型能通過。
+ * 因此本套件、`code-folder-spaces` 或任何擴充套件的樹狀拖曳都無法拖進原生 Explorer；
+ * 改 MIME 或 `resourceUri` 都無法繞過（已實測：payload 正確 ≠ drop 有效）。
+ * 跨資料夾操作請引導使用者用同套件 pane 間拖放，或 Explorer 內剪下／貼上。
  */
 /**
  * 把可拖曳的檔案節點轉成 `file:` URI 字串。
@@ -58,11 +71,17 @@ export class RecentTreeDragAndDropController implements vscode.TreeDragAndDropCo
       treeDataTransfer.set(INTERNAL_MIME, new vscode.DataTransferItem(pinnedFolders.map((f) => f.folderKey)));
     }
 
-    // 2) 檔案節點：寫入 file: URI，供跨 view / 跨擴充套件拖放
-    //    注意：VS Code 預設給的 text/uri-list 是自訂 scheme，會被外部忽略，所以必須覆寫。
+    // 2) 檔案節點：寫入 file: URI，供跨 view / 跨擴充套件拖放。
+    //    VS Code 會自動加入 `application/vnd.code.uri-list`，但值是從 resourceUri 推導的自訂 scheme
+    //    (`colorful-recent:`)，只接受 file: 的落點無法解析。兩個 MIME 都覆寫：
+    //    - `text/uri-list`：給編輯器、接受標準 MIME 的落點
+    //    - `application/vnd.code.uri-list`：VS Code 內部實際傳給樹狀落點的那一份
+    //    註：此覆寫無法讓拖放進入原生 File Explorer（平台層 dragover 攔截，見類別註解）。
     const fileUris = collectDraggableFileUris(source);
     if (fileUris.length > 0) {
-      treeDataTransfer.set(URI_LIST_MIME, new vscode.DataTransferItem(fileUris.join('\r\n')));
+      const serialized = fileUris.join('\r\n');
+      treeDataTransfer.set(URI_LIST_MIME, new vscode.DataTransferItem(serialized));
+      treeDataTransfer.set(VND_URI_LIST_MIME, new vscode.DataTransferItem(serialized));
     }
   }
 

@@ -35,6 +35,31 @@
 4. **資源完整釋放**：所有 listener、provider 與 command 必須納入 `context.subscriptions`。
 5. **分組排序由 Pin 驅動**：已 Pin 的 Folder/Type 分組置頂並可手動拖曳；未 Pin 分組接續其後，依 Time Metric 的最近活動時間排序。`folderSortOrder`（latest/name/manual）設定已移除，排序狀態存於 `workspaceState` 的 `codeColorfulRecentFiles.pinnedGroupOrder`。
 6. **inline 動作只在 hover 顯示**：`view/item/context` 的 `group: "inline"` 按鈕無法常駐顯示（VS Code 原生行為，無 API 可改）。因此已 Pin 的常駐視覺提示用節點 `description` 的 📌；右側 `$(pin)`／`$(pinned)` 切換鈕為 hover 顯示。
+7. **拖曳：可拖到編輯器，但拖不進原生 Explorer（平台硬限制，勿再嘗試）**
+
+   `RecentTreeDragAndDropController.handleDrag` 會把檔案節點以真實 `file:` URI 寫入 `text/uri-list` 與 `application/vnd.code.uri-list`（多檔以 `
+` 分隔——**不可改用 `
+`**，VS Code 的 uriList 實作是 `split('
+')`，用 `
+` 會讓多個 URI 黏成一個無效路徑，但 `vscode.Uri.parse` 仍回 `scheme==='file'`，屬靜默失效）。拖到編輯器或接受 `text/uri-list` 的落點可行。
+
+   **但原生 File Explorer 一律拒絕**，且這與本套件的 `resourceUri` scheme 或 MIME 宣告**無關**。VS Code 核心 `workbench.desktop.main.js` 的 FileExplorer `handleDragOver` 內有：
+
+   ```js
+   if (o instanceof Lvt) return !1;   // 直接拒絕，不進入 MIME 檢查
+   ```
+
+   而 `Lvt`（只有 `{elements}`）是**任何** Monaco tree 在 `onDragStart` 時寫入全域 `CurrentDragAndDropData` 的物件：
+
+   ```js
+   onDragStart(o,e,t){ ... Wke.CurrentDragAndDropData = new Lvt(i); ... }
+   ```
+
+   只有 OS 層拖入（`f8` / `DesktopDragAndDropData`）與 Explorer 自家內部模型（`y_`）能通過該判斷。因此**任何擴充套件的樹狀拖曳都拖不進原生 Explorer**，`code-folder-spaces` 亦同（該專案 Agent 獨立反編譯得到相同結論）。
+
+   **已驗證的事實**：即使 payload 的 `application/vnd.code.uri-list` 已是 `file:///...`（`code-folder-spaces` 因為 `resourceUri` 用 `vscode.Uri.file()` 而自然如此），原生 Explorer 仍在 `dragover` 階段擋下 → **payload 正確 ≠ drop 有效**。驗證此類功能必須做真實拖放，不能只看 `Input.dragIntercepted` 的內容。
+
+   跨資料夾操作請引導使用者用：同套件 pane 之間拖放，或 Explorer 內的剪下／貼上。
 
 ## 指令與驗證
 

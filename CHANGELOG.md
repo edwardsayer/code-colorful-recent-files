@@ -2,13 +2,25 @@
 
 All notable changes to the "code-colorful-recent-files" extension will be documented in this file.
 
+## [0.3.1] - 2026-10-26
+
+### Changed
+- Corrected the drag-and-drop documentation. File items **cannot** be dropped onto the built-in **File Explorer** — that is a hard VS Code platform limitation, not something this extension can fix (see below). Dragging onto an editor or any drop target that accepts `text/uri-list` remains supported.
+
+### Documented limitation
+- VS Code's built-in Explorer rejects any in-window tree drag at the `dragover` stage. In `workbench.desktop.main.js`, `FileExplorer`'s `handleDragOver` contains `if (o instanceof Lvt) return !1;`, and `Lvt` (an `{elements}`-only drag payload) is assigned to the global `CurrentDragAndDropData` by **any** Monaco tree `onDragStart`. Only OS-level drops (`f8` / `DesktopDragAndDropData`) and the Explorer's own internal model pass that guard. No extension-side MIME or `resourceUri` change can bypass it.
+- For moving files between folders, use drag and drop between panes of the same extension, or cut and paste (`Ctrl+C` / `Ctrl+V`) in the Explorer.
+
 ## [0.3.0] - 2026-10-25
 
 ### Added
-- **Drag files out of the Recent Files view.** File items can now be dragged onto the built-in Explorer, the editor, or other extensions that accept `text/uri-list` (for example *Folder Spaces*). Files are written as plain `file:` URIs.
+- **Drag files out of the Recent Files view.** File items can be dragged onto an editor or any other drop target that accepts `text/uri-list`. Files are written as plain `file:` URIs.
 
 ### Fixed
-- Dragging a file out previously produced an unusable `colorful-recent:` URI, because VS Code's auto-generated `text/uri-list` carries this extension's custom scheme. The drag handler now overrides it with the real `file:` path, so external drop targets can resolve it.
+- Dragging a file out previously produced an unusable `colorful-recent:` URI, because VS Code's auto-generated `text/uri-list` carries this extension's custom scheme. The drag handler now overrides it with the real `file:` path.
+
+### Known limitation
+- The built-in **File Explorer** does not accept these drops (platform-level `dragover` rejection). This was initially documented as working in 0.3.0; corrected in 0.3.1. See the 0.3.1 entry for the source-level explanation.
 
 ## [0.2.1] - 2026-10-25
 

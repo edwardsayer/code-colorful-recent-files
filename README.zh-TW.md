@@ -24,7 +24,8 @@
   - **本日近期 (< 2 小時)**：`heat3`（亮黃色）搭配 `1h` 徽章
   - **本日稍早 (< 24 小時)**：`heat2`（暖橘色）搭配 `1d` 徽章
   - **更久以前**：一般中性次要文字顏色
-- 🖱️ **可拖曳檔案出去**：把任何檔案拖到原生 Explorer、編輯器，或其他接受 `text/uri-list` 的擴充套件（例如 **Folder Spaces**）。傳遞的是標準 `file:` URI，落點端拿到的是真實檔案系統路徑。
+- 🖱️ **可拖曳檔案出去**：把檔案拖到編輯器，或其他接受 `text/uri-list` 的落點。傳遞的是標準 `file:` URI，落點端拿到的是真實檔案系統路徑。
+  - **不支援：原生檔案總管（File Explorer）**。這是 VS Code 平台的硬性限制，不是本套件的缺陷——原生 Explorer 在 `dragover` 階段就拒絕任何同視窗的樹狀拖曳（`workbench.desktop.main.js` 內的 `if (o instanceof Lvt) return !1;`），任何 MIME 或 `resourceUri` 的調整都無法繞過。要在資料夾之間移動檔案，請在 Explorer 內使用剪下／貼上。
 - ⚡ **Local-First 本機優先**：歷史記錄直接持久化於 `workspaceState`，零外部依賴、無任何遠端網路請求。
 
 ## 視覺風格：原生檔案圖示 vs 色彩小圓點 (Color Dot)
