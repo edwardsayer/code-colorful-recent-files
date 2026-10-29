@@ -17,7 +17,7 @@
   "configuration.styleNativeExplorer.description": "是否将颜色装饰与右侧标注同时应用到 VS Code 原生资源管理器（原生 Explorer）。",
   "configuration.maxRecentFiles.description": "工作区内最多跟踪记录的最近文件数量。",
   "configuration.highlightMode.description": "时间热度装饰基准：最后访问时间（打开/切换焦点）或最后修改时间（编辑/保存）。",
-  "capabilities.untrustedWorkspaces.description": "本地运行，不向不受信任的磁盘写入，也不执行不受信任的代码。",
+  "capabilities.untrustedWorkspaces.description": "在不受信任的工作区仍可读取并显示最近文件；重命名、移动、删除、撤销文件操作等会修改文件的命令，须待工作区受信任后才能使用。",
   "capabilities.virtualWorkspaces.description": "目前不支持虚拟工作区。",
   "colorfulRecentFiles.color.heat1": "最近文件热度 1 (最新，默认：固定颜色，不随主题变化)",
   "colorfulRecentFiles.color.heat2": "最近文件热度 2 (默认：固定颜色，不随主题变化)",

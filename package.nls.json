@@ -17,7 +17,7 @@
   "configuration.styleNativeExplorer.description": "Apply colorful file decorations and badges to the native VS Code Explorer as well.",
   "configuration.maxRecentFiles.description": "Maximum number of recent files to track in the workspace.",
   "configuration.highlightMode.description": "Base metric for time decoration: last access time (open/switch) or last modified time (edit/save).",
-  "capabilities.untrustedWorkspaces.description": "Works locally without modifying disk or running untrusted code.",
+  "capabilities.untrustedWorkspaces.description": "Reads and displays recent files in untrusted workspaces. Commands that modify files (rename, move, delete) and the undo command are unavailable until the workspace is trusted.",
   "capabilities.virtualWorkspaces.description": "Virtual workspaces are not currently supported.",
   "colorfulRecentFiles.color.heat1": "Recent files heat rank 1 (newest, default: fixed color, theme-independent)",
   "colorfulRecentFiles.color.heat2": "Recent files heat rank 2 (default: fixed color, theme-independent)",

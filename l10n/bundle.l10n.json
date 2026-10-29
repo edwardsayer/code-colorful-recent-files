@@ -14,5 +14,6 @@
   "Close {0} tabs in this group?": "Close {0} tabs in this group?",
   "Close Tabs": "Close Tabs",
   "Remove {0} files in this group from history?": "Remove {0} files in this group from history?",
-  "Remove": "Remove"
+  "Remove": "Remove",
+  "Trust the workspace before modifying files.": "Trust the workspace before modifying files."
 }

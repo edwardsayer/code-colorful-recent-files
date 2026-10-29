@@ -38,7 +38,7 @@
   "l10n": "./l10n",
   "capabilities": {
     "untrustedWorkspaces": {
-      "supported": true,
+      "supported": "limited",
       "description": "%capabilities.untrustedWorkspaces.description%"
     },
     "virtualWorkspaces": {

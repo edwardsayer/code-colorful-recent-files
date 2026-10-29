@@ -14,5 +14,6 @@
   "Close {0} tabs in this group?": "要關閉此群組的 {0} 個分頁嗎？",
   "Close Tabs": "關閉分頁",
   "Remove {0} files in this group from history?": "要從歷史中移除此群組的 {0} 個檔案嗎？",
-  "Remove": "移除"
+  "Remove": "移除",
+  "Trust the workspace before modifying files.": "修改檔案前請先信任此工作區。"
 }

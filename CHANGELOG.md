@@ -2,6 +2,11 @@
 
 All notable changes to the "code-colorful-recent-files" extension will be documented in this file.
 
+## [Unreleased]
+
+### Changed
+- **Workspace Trust declaration is now `limited` instead of `true`.** The extension is gaining file-modifying commands (rename, move to, delete, undo). The previous `capabilities.untrustedWorkspaces` description promised that the extension never writes to disk, which would stop being true. Reading and displaying recent files still works in untrusted workspaces; the commands that modify files will be unavailable until the workspace is trusted.
+
 ## [0.3.2] - 2026-10-26
 
 ### Added

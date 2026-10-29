@@ -14,5 +14,6 @@
   "Close {0} tabs in this group?": "要关闭此分组的 {0} 个标签页吗？",
   "Close Tabs": "关闭标签页",
   "Remove {0} files in this group from history?": "要从历史记录中移除此分组的 {0} 个文件吗？",
-  "Remove": "移除"
+  "Remove": "移除",
+  "Trust the workspace before modifying files.": "修改文件前请先信任此工作区。"
 }
