@@ -15,5 +15,22 @@
   "Close Tabs": "关闭标签页",
   "Remove {0} files in this group from history?": "要从历史记录中移除此分组的 {0} 个文件吗？",
   "Remove": "移除",
-  "Trust the workspace before modifying files.": "修改文件前请先信任此工作区。"
+  "Trust the workspace before modifying files.": "修改文件前请先信任此工作区。",
+  "Enter a new name": "输入新名称",
+  "Enter a valid single file or folder name.": "请输入有效的单个文件或文件夹名称。",
+  "The file no longer exists: {0}": "文件已不存在：{0}",
+  "The target already exists: {0}": "目标已存在：{0}",
+  "Choose a destination folder": "选择目标文件夹",
+  "Move here": "移动到这里",
+  "The destination is not a folder: {0}": "目标不是文件夹：{0}",
+  "A folder cannot be moved into itself or one of its subfolders.": "文件夹不能移动到它自己或其子文件夹内。",
+  "Moving {0}": "正在移动 {0}",
+  "Delete": "删除",
+  "Delete \"{0}\"?": "确定要删除“{0}”？",
+  "This file system provider does not expose trash support; the item was not deleted.": "此文件系统不支持回收站，项目未被删除。",
+  "There is no file operation to undo.": "没有可撤销的文件操作。",
+  "Cannot undo: the moved item no longer exists: {0}": "无法撤销：被移动的项目已不存在：{0}",
+  "Cannot undo: the original path already exists: {0}": "无法撤销：原路径已存在：{0}",
+  "File operation failed: {0}": "文件操作失败：{0}",
+  "Browse for folder…": "浏览文件夹…"
 }

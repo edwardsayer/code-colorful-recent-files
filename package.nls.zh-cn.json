@@ -57,5 +57,9 @@
   "command.closeGroup.title": "关闭此分组全部标签页",
   "command.removeGroup.title": "从历史记录中移除此分组",
   "command.pinGroup.title": "Pin 此分组",
-  "command.unpinGroup.title": "取消 Pin 此分组"
+  "command.unpinGroup.title": "取消 Pin 此分组",
+  "command.renameEntry.title": "重命名",
+  "command.moveTo.title": "移动到…",
+  "command.deleteEntry.title": "删除",
+  "command.undoFileOperation.title": "撤销文件操作"
 }

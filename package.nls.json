@@ -57,5 +57,9 @@
   "command.closeGroup.title": "Close All Tabs in Group",
   "command.removeGroup.title": "Remove Group from History",
   "command.pinGroup.title": "Pin Group",
-  "command.unpinGroup.title": "Unpin Group"
+  "command.unpinGroup.title": "Unpin Group",
+  "command.renameEntry.title": "Rename",
+  "command.moveTo.title": "Move To…",
+  "command.deleteEntry.title": "Delete",
+  "command.undoFileOperation.title": "Undo File Operation"
 }

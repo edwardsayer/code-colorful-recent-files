@@ -317,6 +317,26 @@
         "title": "%command.unpinGroup.title%",
         "icon": "$(pinned)",
         "category": "%category.recentFiles%"
+      },
+      {
+        "command": "codeColorfulRecentFiles.renameEntry",
+        "title": "%command.renameEntry.title%",
+        "category": "%category.recentFiles%"
+      },
+      {
+        "command": "codeColorfulRecentFiles.moveTo",
+        "title": "%command.moveTo.title%",
+        "category": "%category.recentFiles%"
+      },
+      {
+        "command": "codeColorfulRecentFiles.deleteEntry",
+        "title": "%command.deleteEntry.title%",
+        "category": "%category.recentFiles%"
+      },
+      {
+        "command": "codeColorfulRecentFiles.undoFileOperation",
+        "title": "%command.undoFileOperation.title%",
+        "category": "%category.recentFiles%"
       }
     ],
     "menus": {
@@ -507,6 +527,26 @@
           "command": "codeColorfulRecentFiles.copyRelativePath",
           "when": "view == codeColorfulRecentFiles.recentView && viewItem =~ /^(fileItem|folderItem)/",
           "group": "6_copy@2"
+        },
+        {
+          "command": "codeColorfulRecentFiles.renameEntry",
+          "when": "view == codeColorfulRecentFiles.recentView && viewItem =~ /^fileItem/ && isWorkspaceTrusted",
+          "group": "7_modification@1"
+        },
+        {
+          "command": "codeColorfulRecentFiles.moveTo",
+          "when": "view == codeColorfulRecentFiles.recentView && viewItem =~ /^fileItem/ && isWorkspaceTrusted",
+          "group": "7_modification@2"
+        },
+        {
+          "command": "codeColorfulRecentFiles.deleteEntry",
+          "when": "view == codeColorfulRecentFiles.recentView && viewItem =~ /^fileItem/ && isWorkspaceTrusted",
+          "group": "7_modification@3"
+        },
+        {
+          "command": "codeColorfulRecentFiles.undoFileOperation",
+          "when": "view == codeColorfulRecentFiles.recentView && isWorkspaceTrusted",
+          "group": "7_modification@4"
         }
       ],
       "commandPalette": [
@@ -584,6 +624,18 @@
         },
         {
           "command": "codeColorfulRecentFiles.unpinGroup",
+          "when": "false"
+        },
+        {
+          "command": "codeColorfulRecentFiles.renameEntry",
+          "when": "false"
+        },
+        {
+          "command": "codeColorfulRecentFiles.moveTo",
+          "when": "false"
+        },
+        {
+          "command": "codeColorfulRecentFiles.deleteEntry",
           "when": "false"
         }
       ]

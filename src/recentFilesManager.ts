@@ -4,6 +4,27 @@ import * as vscode from 'vscode';
 import { getExtensionConfig } from './config';
 import { RecentFileRecord } from './types';
 import { addToPinnedOrder, isPinned, removeFromPinnedOrder } from './util/groupSort';
+import { removePinnedDirKeys, removeRecordPaths, rewritePinnedDirKeys, rewriteRecordPaths, isPathWithin } from './util/fileOps';
+
+/**
+ * 重建以 `normalizePathKey` 為 key 的路徑集合（`openTabsSet` 用）。
+ *
+ * 不能直接拿 PathRecord 硬轉：這組 key 已經過 `normalizePathKey`（小寫 + 正規化），
+ * 與原始 `fsPath` 大小寫可能不同。這裡對 key 做同樣的前綴改寫，並重新正規化結果，
+ * 使其與 `isOpenTab()` 的查表方式一致。
+ */
+function rekeyPathSet(keys: ReadonlySet<string>, from: string, to: string): Set<string> {
+  const next = new Set<string>();
+  for (const key of keys) {
+    if (isPathWithin(from, key)) {
+      const record = rewriteRecordPaths([{ uri: '', fsPath: key, lastOpenedTime: 0, lastModifiedTime: 0 }], from, to)[0];
+      next.add(normalizePathKey(record.fsPath));
+    } else {
+      next.add(key);
+    }
+  }
+  return next;
+}
 import { logError, logInfo } from './util/log';
 import { normalizePathKey } from './util/pathUtil';
 
@@ -196,6 +217,64 @@ export class RecentFilesManager {
     }
   }
 
+  /**
+   * `rename`／`move` 後同步所有保存了該路徑的位置。
+   *
+   * 三處必須一起改，否則會出現「檔案已改名但歷史清單還在舊路徑」：
+   * 1. `recordsMap`（`workspaceState` 的 records）
+   * 2. `openTabsSet`（避免 rename 後舊 key 永遠殘留，使 `isOpenTab` 回錯）
+   * 3. `pinnedGroupOrder` 的 `dir:<path>` key（Type 分組不受影響）
+   *
+   * 時間戳由 `rewriteRecordPaths` 保留——移動不應讓檔案在清單中變新或變舊。
+   */
+  public async applyPathRewrite(from: string, to: string): Promise<void> {
+    const rewritten = rewriteRecordPaths(this.getRecords(), from, to);
+    this.recordsMap.clear();
+    for (const record of rewritten) {
+      this.recordsMap.set(normalizePathKey(record.fsPath), record);
+    }
+    this.sortedCache = null;
+
+    this.openTabsSet = rekeyPathSet(this.openTabsSet, from, to);
+
+    const pinned = this.getPinnedGroupOrder();
+    const nextPinned = rewritePinnedDirKeys(pinned, from, to);
+    if (nextPinned.length !== pinned.length || nextPinned.some((key, index) => key !== pinned[index])) {
+      await this.context.workspaceState.update(PINNED_ORDER_KEY, nextPinned);
+    }
+
+    await this.saveToStorage();
+    this._onDidChangeRecentFiles.fire();
+  }
+
+  /**
+   * `delete` 後從歷史移除該路徑**及其所有子項**（刪除目錄時的情境），
+   * 並同步清理 `pinnedGroupOrder` 的 `dir:<path>` key（`type:` key 不受影響）。
+   */
+  public async applyPathRemoval(target: string): Promise<void> {
+    const kept = removeRecordPaths(this.getRecords(), target);
+    this.recordsMap.clear();
+    for (const record of kept) {
+      this.recordsMap.set(normalizePathKey(record.fsPath), record);
+    }
+    this.sortedCache = null;
+
+    for (const key of Array.from(this.openTabsSet)) {
+      if (isPathWithin(target, key)) {
+        this.openTabsSet.delete(key);
+      }
+    }
+
+    const pinned = this.getPinnedGroupOrder();
+    const nextPinned = removePinnedDirKeys(pinned, target);
+    if (nextPinned.length !== pinned.length) {
+      await this.context.workspaceState.update(PINNED_ORDER_KEY, nextPinned);
+    }
+
+    await this.saveToStorage();
+    this._onDidChangeRecentFiles.fire();
+  }
+
   /** 關閉對應路徑的 VS Code Open Tab */
   /** 取得開啟指定檔案的所有分頁 */
   public getTabsForFiles(fsPaths: string[]): vscode.Tab[] {
@@ -243,6 +322,25 @@ export class RecentFilesManager {
   }
 
   /** 主動置頂特定檔案 (點擊即時刷新) */
+  /**
+   * 新增紀錄前的存在性檢查。
+   *
+   * 只擋「**建立新紀錄**」，不擋既有紀錄的時間更新（既有紀錄可能因暫時性 I/O 失敗而 stat 不到，
+   * 不應因此丟失）。
+   *
+   * 為何需要：檔案被 rename／move／delete 之後，指向舊路徑的編輯器（尤其是 **dirty buffer**，
+   * VS Code 無法安全搬移未儲存的內容）仍會觸發 `onDidChangeActiveTextEditor`，
+   * 把已經不存在的舊路徑重新記回歷史，造成「改名後舊名仍在清單裡」的幽靈條目（feat/R6 實機重現）。
+   * 對不存在的檔案建立紀錄沒有意義——該列點下去也開不起來。
+   */
+  private canCreateRecord(fsPath: string): boolean {
+    try {
+      return fs.existsSync(fsPath);
+    } catch {
+      return false;
+    }
+  }
+
   public async touchFile(fsPath: string, fireEvent = true): Promise<void> {
     const key = normalizePathKey(fsPath);
     const now = Date.now();
@@ -251,6 +349,9 @@ export class RecentFilesManager {
     if (record) {
       record.lastOpenedTime = now;
     } else {
+      if (!this.canCreateRecord(fsPath)) {
+        return;
+      }
       const realMtime = this.resolveValidTime(fsPath);
       record = {
         uri: vscode.Uri.file(fsPath).toString(),
@@ -278,6 +379,9 @@ export class RecentFilesManager {
     let record = this.recordsMap.get(key);
 
     if (!record) {
+      if (!this.canCreateRecord(uri.fsPath)) {
+        return;
+      }
       const realMtime = this.resolveValidTime(uri.fsPath);
       record = {
         uri: uri.toString(),

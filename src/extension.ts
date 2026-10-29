@@ -11,6 +11,7 @@ import {
   setSyncWithOpenTabs,
 } from './config';
 import { registerContextMenuCommands } from './contextMenu';
+import { registerFileOperationCommands } from './fileOperations';
 import { RecentFileDecorationProvider } from './recentFileDecorationProvider';
 import { RecentFilesManager } from './recentFilesManager';
 import { RecentTreeDataProvider } from './recentTreeDataProvider';
@@ -207,6 +208,7 @@ export function activate(context: vscode.ExtensionContext): void {
   );
 
   registerContextMenuCommands(context, manager);
+  registerFileOperationCommands(context, manager, treeView, { refresh: () => treeDataProvider.refresh() });
 
   // 註冊指令：開啟檔案 (主動更新時間記錄並將該檔案及所屬資料夾立刻置頂)
   context.subscriptions.push(

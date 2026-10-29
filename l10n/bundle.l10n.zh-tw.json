@@ -15,5 +15,22 @@
   "Close Tabs": "關閉分頁",
   "Remove {0} files in this group from history?": "要從歷史中移除此群組的 {0} 個檔案嗎？",
   "Remove": "移除",
-  "Trust the workspace before modifying files.": "修改檔案前請先信任此工作區。"
+  "Trust the workspace before modifying files.": "修改檔案前請先信任此工作區。",
+  "Enter a new name": "輸入新名稱",
+  "Enter a valid single file or folder name.": "請輸入有效的單一檔案或資料夾名稱。",
+  "The file no longer exists: {0}": "檔案已不存在：{0}",
+  "The target already exists: {0}": "目標已存在：{0}",
+  "Choose a destination folder": "選擇目的資料夾",
+  "Move here": "移到這裡",
+  "The destination is not a folder: {0}": "目的不是資料夾：{0}",
+  "A folder cannot be moved into itself or one of its subfolders.": "資料夾不能移到它自己或其子資料夾內。",
+  "Moving {0}": "正在移動 {0}",
+  "Delete": "刪除",
+  "Delete \"{0}\"?": "確定要刪除「{0}」？",
+  "This file system provider does not expose trash support; the item was not deleted.": "此檔案系統不支援垃圾桶，項目未被刪除。",
+  "There is no file operation to undo.": "沒有可復原的檔案操作。",
+  "Cannot undo: the moved item no longer exists: {0}": "無法復原：被移動的項目已不存在：{0}",
+  "Cannot undo: the original path already exists: {0}": "無法復原：原路徑已存在：{0}",
+  "File operation failed: {0}": "檔案操作失敗：{0}",
+  "Browse for folder…": "瀏覽資料夾…"
 }

@@ -15,5 +15,22 @@
   "Close Tabs": "Close Tabs",
   "Remove {0} files in this group from history?": "Remove {0} files in this group from history?",
   "Remove": "Remove",
-  "Trust the workspace before modifying files.": "Trust the workspace before modifying files."
+  "Trust the workspace before modifying files.": "Trust the workspace before modifying files.",
+  "Enter a new name": "Enter a new name",
+  "Enter a valid single file or folder name.": "Enter a valid single file or folder name.",
+  "The file no longer exists: {0}": "The file no longer exists: {0}",
+  "The target already exists: {0}": "The target already exists: {0}",
+  "Choose a destination folder": "Choose a destination folder",
+  "Move here": "Move here",
+  "The destination is not a folder: {0}": "The destination is not a folder: {0}",
+  "A folder cannot be moved into itself or one of its subfolders.": "A folder cannot be moved into itself or one of its subfolders.",
+  "Moving {0}": "Moving {0}",
+  "Delete": "Delete",
+  "Delete \"{0}\"?": "Delete \"{0}\"?",
+  "This file system provider does not expose trash support; the item was not deleted.": "This file system provider does not expose trash support; the item was not deleted.",
+  "There is no file operation to undo.": "There is no file operation to undo.",
+  "Cannot undo: the moved item no longer exists: {0}": "Cannot undo: the moved item no longer exists: {0}",
+  "Cannot undo: the original path already exists: {0}": "Cannot undo: the original path already exists: {0}",
+  "File operation failed: {0}": "File operation failed: {0}",
+  "Browse for folder…": "Browse for folder…"
 }

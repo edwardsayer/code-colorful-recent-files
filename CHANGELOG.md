@@ -4,6 +4,11 @@ All notable changes to the "code-colorful-recent-files" extension will be docume
 
 ## [Unreleased]
 
+### Added
+- **Rename, Move To…, Delete and Undo File Operation in the recent files view.** Right-click a file to rename it, move it to another folder, or delete it (to the trash when `files.enableTrash` is on, with the usual `explorer.confirmDelete` prompt). Undo reverts the last rename or move. The history list, the pinned folder order and the `.vscode/colorful-recent-files.json` backup are updated together, so a moved file keeps its timestamp and does not jump to the top.
+
+  These commands only appear in trusted workspaces. Delete is not undoable; only rename and move are, and the undo history lives in memory for the current session only.
+
 ### Changed
 - **Workspace Trust declaration is now `limited` instead of `true`.** The extension is gaining file-modifying commands (rename, move to, delete, undo). The previous `capabilities.untrustedWorkspaces` description promised that the extension never writes to disk, which would stop being true. Reading and displaying recent files still works in untrusted workspaces; the commands that modify files will be unavailable until the workspace is trusted.
 

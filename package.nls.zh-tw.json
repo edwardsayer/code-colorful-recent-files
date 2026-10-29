@@ -57,5 +57,9 @@
   "command.closeGroup.title": "關閉此群組全部分頁",
   "command.removeGroup.title": "從歷史中移除此群組",
   "command.pinGroup.title": "Pin 此分組",
-  "command.unpinGroup.title": "取消 Pin 此分組"
+  "command.unpinGroup.title": "取消 Pin 此分組",
+  "command.renameEntry.title": "重新命名",
+  "command.moveTo.title": "移至…",
+  "command.deleteEntry.title": "刪除",
+  "command.undoFileOperation.title": "復原檔案操作"
 }
