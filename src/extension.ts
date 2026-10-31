@@ -19,7 +19,7 @@ import { RecentTreeDataProvider } from './recentTreeDataProvider';
 import { RecentTreeDragAndDropController } from './treeDragAndDrop';
 import { RECENT_FOLDER_SCHEME, RECENT_SCHEME, RecentFileElement } from './types';
 import { decideHeatTokensReady, setHeatTokensReady } from './util/color';
-import { initLogger, logInfo } from './util/log';
+import { initLogger, logInfo, logWarn } from './util/log';
 import { DummyFileSystemProvider } from './util/virtualFs';
 
 /**
@@ -51,10 +51,16 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
   // `feat.legacy-flag`／B-08：0.4.0 起不再宣告 `groupByDirectory`，殘留值會被 VS Code
   // 視為未知設定。啟用時做一次性清理（並在必要時把意圖翻譯成 `groupBy`）。
-  const legacyMigration = await migrateLegacyGroupBySettings();
-  if (legacyMigration === 'migrated') {
-    logInfo('Removed the legacy "groupByDirectory" setting (superseded by "groupBy").');
-  }
+  // **不 await**：使用者設定若被 policy 鎖成唯讀，VS Code 的寫入失敗會先跳錯誤對話框並等待
+  // （實測每次約 12 秒），await 會讓整個啟用卡住、看起來像掛掉。遷移只是清理，
+  // 不影響後續註冊；結果以日誌回報。
+  void migrateLegacyGroupBySettings().then((result) => {
+    if (result === 'migrated') {
+      logInfo('Removed the legacy "groupByDirectory" setting (superseded by "groupBy").');
+    } else if (result === 'failed') {
+      logWarn('The legacy "groupByDirectory" setting could not be cleaned up (settings may be read-only).');
+    }
+  });
 
   // VS Code 只在視窗啟動時把已安裝擴充套件的 `contributes.colors` 納入主題 CSS。
   // 若本套件是在本次視窗啟動後才（重新）安裝，heat token 尚未存在於 CSS，

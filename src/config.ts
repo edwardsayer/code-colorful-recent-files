@@ -64,7 +64,11 @@ export async function migrateLegacyGroupBySettings(): Promise<'none' | 'migrated
         .update('groupBy', decision.groupBy, vscode.ConfigurationTarget.Global);
     }
     if (decision.removeLegacy) {
-      await removeLegacyGroupByKey(scopes);
+      const cleared = await removeLegacyGroupByKey(scopes);
+      // 一個都沒清掉（例如使用者設定被 policy 鎖成唯讀）→ 誠實回報失敗，不要記成已遷移
+      if (!cleared) {
+        return 'failed';
+      }
     }
     return 'migrated';
   } catch (error) {
@@ -97,21 +101,25 @@ function firstDefined<T>(values: (T | undefined)[]): T | undefined {
   return values.find((value) => value !== undefined);
 }
 
-async function removeLegacyGroupByKey(scopes: ConfigScope[]): Promise<void> {
+async function removeLegacyGroupByKey(scopes: ConfigScope[]): Promise<boolean> {
   const base = scopes[0].config;
+  let cleared = false;
   for (const target of [vscode.ConfigurationTarget.Global, vscode.ConfigurationTarget.Workspace]) {
     try {
       await base.update(LEGACY_GROUP_BY_DIRECTORY_KEY, undefined, target);
+      cleared = true;
     } catch (error) {
-      // 單一層失敗（唯讀、policy 控管）不影響其他層與啟用流程
+      // 唯讀設定時 VS Code 會先自己跳錯誤對話框並等待（實測每次約 12 秒），
+      // 因此第一次失敗就停止後續層級，避免重複等待與重複對話框。
       logWarn(`Could not clear the legacy "groupByDirectory" setting at target ${target}.`, error);
+      return cleared;
     }
   }
   // Folder 層要帶 resource：單一資料夾工作區就是 `.vscode/settings.json`（已由 Workspace 覆蓋），
   // 因此只在多根工作區逐資料夾處理，避免對不存在的 folder scope 寫入而產生無意義警告。
   const folderScopes = scopes.filter((scope) => scope.folderUri);
   if (folderScopes.length <= 1) {
-    return;
+    return cleared;
   }
   for (const scope of folderScopes) {
     try {
@@ -120,10 +128,13 @@ async function removeLegacyGroupByKey(scopes: ConfigScope[]): Promise<void> {
         undefined,
         vscode.ConfigurationTarget.WorkspaceFolder
       );
+      cleared = true;
     } catch (error) {
       logWarn(`Could not clear the legacy "groupByDirectory" setting for folder ${scope.folderName}.`, error);
+      return cleared;
     }
   }
+  return cleared;
 }
 
 export async function setColorScheme(value: ColorScheme): Promise<void> {
