@@ -9,6 +9,8 @@ import {
 } from '../../src/util/groupSort';
 
 const group = (folderKey: string, latestActivity: number): SortableGroup => ({ folderKey, latestActivity });
+/** 沒有活動資料的分組（`latestActivity` 缺席） */
+const emptyGroup = (folderKey: string): SortableGroup => ({ folderKey });
 
 describe('orderGroups', () => {
   it('puts pinned groups first in manual order, then unpinned by time desc', () => {
@@ -46,6 +48,18 @@ describe('orderGroups', () => {
     expect(orderGroups(groups, ['pinned']).map((g) => g.folderKey)).toEqual(['pinned', 'fresh']);
   });
 });
+
+  it('sorts groups without activity data after those with data', () => {
+    // feat.defensive-bounds：`undefined` 不可再被當成 1970 年與真資料比較，
+    // 但結果仍應接在有資料的分組之後，最後才依 key 排序。
+    const groups = [emptyGroup('type:ABC'), group('type:TS', 100), emptyGroup('type:ZZZ'), group('type:JSON', 900)];
+    expect(orderGroups(groups, []).map((g) => g.folderKey)).toEqual(['type:JSON', 'type:TS', 'type:ABC', 'type:ZZZ']);
+  });
+
+  it('keeps a genuine epoch (0) group ahead of a group with no data', () => {
+    const groups = [emptyGroup('type:EMPTY'), group('type:EPOCH', 0)];
+    expect(orderGroups(groups, []).map((g) => g.folderKey)).toEqual(['type:EPOCH', 'type:EMPTY']);
+  });
 
 describe('addToPinnedOrder / removeFromPinnedOrder / isPinned', () => {
   it('appends new keys and never duplicates', () => {

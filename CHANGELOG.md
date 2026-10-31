@@ -5,6 +5,7 @@ All notable changes to the "code-colorful-recent-files" extension will be docume
 ## [Unreleased]
 
 ### Changed
+- **Heat colour levels and folder ordering are clamped and typed honestly.** `getHeatColorId()` now clamps out-of-range levels (negative, fractional, `NaN`, `Infinity`, beyond the palette) instead of returning `undefined`, which would have made `new ThemeColor(undefined)` fail at runtime. `getGroupLatestActivity()` returns `undefined` for a group with no usable timestamp instead of `0`, so "no activity data" is no longer conflated with "1970"; such groups sort after groups that have data, and a genuine epoch timestamp still sorts as data.
 - **Tab input parsing no longer relies on `instanceof`, and image tabs are no longer dropped silently.** On VS Code builds that do not hand `Tab.input` to extensions (observed on 1.144.0, while VSCodium 1.140.0 hands over `{ uri, viewType }`), custom-editor tabs cannot be resolved; the extension now logs a single warning naming the tab instead of quietly ignoring it. Text tabs are unaffected.
 - **Clicking a row keeps the keyboard focus in the list.** The file still opens, now in a **preview** tab like the built-in File Explorer, but the Recent Files view keeps focus so `F2`, `Delete` and `Ctrl` + `Z` work immediately after a click instead of requiring a second click on the view. This changes the previous behaviour, where a single click moved focus into the editor and the shortcuts appeared dead until the view was focused again (backlog B-10).
 

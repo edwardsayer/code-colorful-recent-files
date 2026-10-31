@@ -175,9 +175,18 @@ export function resetHeatTokensReady(): void {
   heatTokensReady = true;
 }
 
-/** 取得第 index 級熱度色彩 token id（0 最新 ~ 5 最舊） */
+/**
+ * 取得第 index 級熱度色彩 token id（0 最新 ~ N-1 最舊）。
+ *
+ * 呼叫端目前都傳合法級距，但這是**公開的純函式**：非整數、負值、`NaN`、`Infinity`
+ * 或超出級距數時若直接索引，會回傳 `undefined` 而讓 `ThemeColor` 建構失敗。
+ * 因此在此夾限（`feat.defensive-bounds`／B-01）：超出範圍取最近端點，非有限值取 0。
+ */
 export function getHeatColorId(index: number): string {
-  return (heatTokensReady ? HEAT_COLOR_IDS : FALLBACK_COLOR_IDS)[index];
+  const palette = heatTokensReady ? HEAT_COLOR_IDS : FALLBACK_COLOR_IDS;
+  const normalized = Number.isFinite(index) ? Math.trunc(index) : 0;
+  const clamped = Math.min(palette.length - 1, Math.max(0, normalized));
+  return palette[clamped];
 }
 
 /**

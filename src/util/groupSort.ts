@@ -11,8 +11,8 @@
 /** 排序所需的最小分組資訊 */
 export interface SortableGroup {
   folderKey: string;
-  /** 組內最活躍檔案的時間戳記（毫秒），供未 Pin 分組排序使用 */
-  latestActivity: number;
+  /** 組內最活躍檔案的時間戳記（毫秒）；`undefined` 表示該組沒有可用的活動時間 */
+  latestActivity?: number;
 }
 
 /**
@@ -40,8 +40,13 @@ export function orderGroups<T extends SortableGroup>(groups: readonly T[], pinne
 
   pinned.sort((a, b) => (pinnedIndex.get(a.folderKey) as number) - (pinnedIndex.get(b.folderKey) as number));
   unpinned.sort((a, b) => {
-    if (b.latestActivity !== a.latestActivity) {
-      return b.latestActivity - a.latestActivity;
+    // 沒有活動資料的分組接在最後（再依 key 排序），不要與「1970 年」混為一談
+    const aTime = a.latestActivity;
+    const bTime = b.latestActivity;
+    if (aTime !== bTime) {
+      if (aTime === undefined) return 1;
+      if (bTime === undefined) return -1;
+      return bTime - aTime;
     }
     return a.folderKey.localeCompare(b.folderKey);
   });

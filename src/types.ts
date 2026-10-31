@@ -38,7 +38,7 @@ export interface RecentFolderElement {
   files: RecentFileRecord[];
   primaryFileFsPath?: string;      // 該資料夾中排序第一 (最新) 的檔案路徑
   isPinned: boolean;               // 是否已 Pin (決定排序區塊與右鍵選單)
-  latestActivity: number;          // 組內最活躍檔案時間，供未 Pin 分組排序
+  latestActivity?: number;         // 組內最活躍檔案時間；undefined 表示無可用資料（排序時置於最後）
 }
 
 export interface RecentFileElement {

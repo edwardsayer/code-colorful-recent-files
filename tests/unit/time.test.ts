@@ -89,8 +89,16 @@ describe('getGroupLatestActivity', () => {
     expect(getGroupLatestActivity(records, 'lastModified')).toBe(30);
   });
 
-  it('returns 0 for empty groups and ignores non-finite values', () => {
-    expect(getGroupLatestActivity([], 'lastAccess')).toBe(0);
-    expect(getGroupLatestActivity([rec('a', NaN, NaN)], 'lastAccess')).toBe(0);
+  it('returns undefined when a group has no usable activity time', () => {
+    // feat.defensive-bounds：`undefined`（無資料）與 0（1970 年）必須可區分，
+    // 否則排序端無法把「沒有活動」的資料夾放到最後。
+    expect(getGroupLatestActivity([], 'lastAccess')).toBeUndefined();
+    expect(getGroupLatestActivity([rec('a', NaN, NaN)], 'lastAccess')).toBeUndefined();
+    expect(getGroupLatestActivity([rec('a', NaN, Infinity)], 'lastModified')).toBeUndefined();
+  });
+
+  it('keeps a genuine epoch timestamp distinct from "no data"', () => {
+    expect(getGroupLatestActivity([rec('a', 0, 0)], 'lastAccess')).toBe(0);
+    expect(getGroupLatestActivity([rec('a', 0, 0), rec('b', 5, 5)], 'lastAccess')).toBe(5);
   });
 });

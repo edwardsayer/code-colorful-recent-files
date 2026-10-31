@@ -22,11 +22,14 @@ export function getMetricTime(record: RecentFileRecord, mode: 'lastAccess' | 'la
 export function getGroupLatestActivity(
   records: readonly RecentFileRecord[],
   mode: 'lastAccess' | 'lastModified'
-): number {
-  let latest = 0;
+): number | undefined {
+  // 回傳 `undefined` 代表「沒有任何可用的活動時間」。舊版用 0 同時表示「空集合」與
+  // 「1970 年」，排序端無法區分（feat.defensive-bounds／B-01）。
+  let latest: number | undefined;
   for (const record of records) {
     const time = getMetricTime(record, mode);
-    if (Number.isFinite(time) && time > latest) {
+    if (!Number.isFinite(time)) continue;
+    if (latest === undefined || time > latest) {
       latest = time;
     }
   }

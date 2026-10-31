@@ -101,6 +101,18 @@ describe('first-session fallback colors', () => {
     setHeatTokensReady(true); // 還原，避免影響其他測試
   });
 
+  it('clamps out-of-range heat levels instead of returning undefined', () => {
+    // feat.defensive-bounds／B-01：超出級距或非有限值過去會回傳 undefined，
+    // 讓 `new vscode.ThemeColor(undefined)` 在執行期炸掉。
+    setHeatTokensReady(true);
+    expect(getHeatColorId(0)).toBe(HEAT_COLOR_IDS[0]);
+    expect(getHeatColorId(-3)).toBe(HEAT_COLOR_IDS[0]);
+    expect(getHeatColorId(Number.NaN)).toBe(HEAT_COLOR_IDS[0]);
+    expect(getHeatColorId(Number.POSITIVE_INFINITY)).toBe(HEAT_COLOR_IDS[0]);
+    expect(getHeatColorId(HEAT_COLOR_IDS.length + 10)).toBe(HEAT_COLOR_IDS[HEAT_COLOR_IDS.length - 1]);
+    expect(getHeatColorId(2.7)).toBe(HEAT_COLOR_IDS[2]);
+  });
+
   it('detects semi-transparent color values', () => {
     expect(isTransparentColor('rgba(234, 92, 0, 0.33)')).toBe(true);
     expect(isTransparentColor('rgba(234, 92, 0, 1)')).toBe(false);
