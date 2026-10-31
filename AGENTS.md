@@ -8,7 +8,7 @@
 > **打包檔名**：`npm run package:vsix` 走 `scripts/pack.mjs`，固定輸出 `colorful-recent-files-<version>.vsix`（不依賴 shell 變數展開）。
 
 產品願景與 Stage 計畫見私有規劃：
-- `dev/planning/TODO.md`（唯一 canonical Stage 主控）
+- `dev/planning/TRACK-feat.md`（功能軌；track 不設生命週期 status、不歸檔）與 `dev/planning/BACKLOG.md`（未立案需求池 B-01～），stage 檔為 `dev/planning/STAGE-{track}.{stage}.md`，結案後歸檔至 `dev/archive/stages/`
 - `dev/specs/recent-files-design.md`（系統規格書）
 
 > `dev/` 實體位於工作區私有 repo `dev/code-colorful-recent-files/`，本專案內為 NTFS junction；管理用 `node ../tools/dev-link.mjs`。**禁用 `rm -rf <project>/dev`**。
