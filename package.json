@@ -640,6 +640,24 @@
         }
       ]
     },
+    "keybindings": [
+      {
+        "command": "codeColorfulRecentFiles.renameEntry",
+        "key": "f2",
+        "when": "focusedView == codeColorfulRecentFiles.recentView && listFocus && isWorkspaceTrusted && codeColorfulRecentFiles.selectedKind == file"
+      },
+      {
+        "command": "codeColorfulRecentFiles.deleteEntry",
+        "key": "delete",
+        "when": "focusedView == codeColorfulRecentFiles.recentView && listFocus && isWorkspaceTrusted && codeColorfulRecentFiles.selectedKind == file"
+      },
+      {
+        "command": "codeColorfulRecentFiles.undoFileOperation",
+        "key": "ctrl+z",
+        "mac": "cmd+z",
+        "when": "focusedView == codeColorfulRecentFiles.recentView && listFocus && isWorkspaceTrusted"
+      }
+    ],
     "configuration": {
       "title": "%configuration.title%",
       "properties": {

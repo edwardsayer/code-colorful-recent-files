@@ -113,9 +113,65 @@ describe('selection context key for keybindings', () => {
     expect(operations).toContain('selectedKind');
     expect(operations).toContain('onDidChangeSelection');
   });
+});
+describe('keybindings (feat.file-ops-shortcuts)', () => {
+  interface Binding {
+    command: string;
+    key: string;
+    mac?: string;
+    when?: string;
+    args?: unknown;
+  }
+  const bindings: Binding[] = pkg.contributes.keybindings ?? [];
+  const SPEC = 'dev/code-colorful-recent-files/specs/file-operations-design.md §8';
+  const GATE = ['focusedView == codeColorfulRecentFiles.recentView', 'listFocus', 'isWorkspaceTrusted'];
+
+  it('declares exactly the three contracted shortcuts', () => {
+    const actual = bindings.map((b) => `${b.key} -> ${b.command}`).sort();
+    expect(actual, `快捷鍵契約不符（${SPEC}）`).toEqual([
+      `ctrl+z -> ${PREFIX}undoFileOperation`,
+      `delete -> ${PREFIX}deleteEntry`,
+      `f2 -> ${PREFIX}renameEntry`,
+    ]);
+  });
+
+  it('gates every shortcut behind focus, list focus and trust', () => {
+    for (const binding of bindings) {
+      for (const gate of GATE) {
+        expect(binding.when ?? '', `${binding.key} 缺少 ${gate}`).toContain(gate);
+      }
+    }
+  });
+
+  it('requires a selected file node for the two node-bound shortcuts', () => {
+    for (const key of ['f2', 'delete']) {
+      const binding = bindings.find((b) => b.key === key);
+      expect(binding!.when, `${key} 應限定選取檔案節點`).toContain('codeColorfulRecentFiles.selectedKind == file');
+    }
+    // undo 是無節點操作：若限定選取，未選取時就永遠無法復原
+    const undo = bindings.find((b) => b.key === 'ctrl+z');
+    expect(undo!.when, 'undo 不應限定選取節點').not.toContain('selectedKind');
+  });
+
+  it('passes no args because handlers read treeView.selection', () => {
+    for (const binding of bindings) {
+      expect(binding.args, `${binding.key} 不應在 keybinding 傳 args`).toBeUndefined();
+    }
+  });
+
+  it('binds the undo shortcut to the platform-native redo-free key', () => {
+    // macOS 的 "ctrl+z" 不是使用者預期的 undo 鍵，必須宣告 cmd+z（spec §8）。
+    const undo = bindings.find((b) => b.key === 'ctrl+z');
+    expect(undo!.mac, 'ctrl+z 缺少 mac 變體 cmd+z').toBe('cmd+z');
+    // F2／Delete 是跨平台同鍵，不需 mac 變體
+    for (const key of ['f2', 'delete']) {
+      expect(bindings.find((b) => b.key === key)!.mac, `${key} 不應有 mac 變體`).toBeUndefined();
+    }
+  });
 
   it('has no keybinding that relies on viewItem', () => {
-    for (const binding of pkg.contributes.keybindings ?? []) {
+    // 實機證實 viewItem 在 keybinding when 中恆為 false（tests/feat/R3/）
+    for (const binding of bindings) {
       expect(binding.when ?? '', `keybinding 不可使用 viewItem：${binding.command}`).not.toContain('viewItem');
     }
   });
