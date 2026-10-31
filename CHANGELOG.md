@@ -5,6 +5,7 @@ All notable changes to the "code-colorful-recent-files" extension will be docume
 ## [Unreleased]
 
 ### Changed
+- **Tab input parsing no longer relies on `instanceof`, and image tabs are no longer dropped silently.** On VS Code builds that do not hand `Tab.input` to extensions (observed on 1.144.0, while VSCodium 1.140.0 hands over `{ uri, viewType }`), custom-editor tabs cannot be resolved; the extension now logs a single warning naming the tab instead of quietly ignoring it. Text tabs are unaffected.
 - **Clicking a row keeps the keyboard focus in the list.** The file still opens, now in a **preview** tab like the built-in File Explorer, but the Recent Files view keeps focus so `F2`, `Delete` and `Ctrl` + `Z` work immediately after a click instead of requiring a second click on the view. This changes the previous behaviour, where a single click moved focus into the editor and the shortcuts appeared dead until the view was focused again (backlog B-10).
 
 ## [0.3.3] - 2026-10-31

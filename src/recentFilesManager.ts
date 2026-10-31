@@ -5,6 +5,7 @@ import { getExtensionConfig } from './config';
 import { RecentFileRecord } from './types';
 import { addToPinnedOrder, isPinned, removeFromPinnedOrder } from './util/groupSort';
 import { removePinnedDirKeys, removeRecordPaths, rewritePinnedDirKeys, rewriteRecordPaths, isPathWithin } from './util/fileOps';
+import { isOpaqueTabInput, readTabInputPath } from './util/tabInput';
 
 /**
  * 重建以 `normalizePathKey` 為 key 的路徑集合（`openTabsSet` 用）。
@@ -25,7 +26,7 @@ function rekeyPathSet(keys: ReadonlySet<string>, from: string, to: string): Set<
   }
   return next;
 }
-import { logError, logInfo } from './util/log';
+import { logError, logInfo, logWarn } from './util/log';
 import { normalizePathKey } from './util/pathUtil';
 
 const STORAGE_KEY = 'codeColorfulRecentFiles.records';
@@ -39,6 +40,8 @@ export class RecentFilesManager {
   private sortedCache: RecentFileRecord[] | null = null;
   /** 記憶體中追蹤當前所有開啟的 tabs 本機路徑 key */
   private openTabsSet = new Set<string>();
+  /** 空 `Tab.input` 的診斷訊息只記一次（每個 session） */
+  private opaqueTabInputWarned = false;
   private readonly _onDidChangeRecentFiles = new vscode.EventEmitter<void>();
   public readonly onDidChangeRecentFiles = this._onDidChangeRecentFiles.event;
 
@@ -455,15 +458,34 @@ export class RecentFilesManager {
 
   /** 從 Tab 物件中提取檔案 URI (支援圖片、二進位與文字自訂編輯器) */
   private extractTabUri(tab: vscode.Tab): vscode.Uri | undefined {
-    if (!tab || !tab.input) return undefined;
-    const input = tab.input as any;
-    if (input.uri instanceof vscode.Uri) {
-      return input.uri;
+    if (!tab) return undefined;
+    const input = tab.input as unknown;
+    const location = readTabInputPath(input);
+    if (!location) {
+      this.warnOpaqueTabInput(tab, input);
+      return undefined;
     }
-    if (input.resource instanceof vscode.Uri) {
-      return input.resource;
+    const raw = (input as { uri?: unknown }).uri ?? (input as { resource?: unknown }).resource;
+    if (raw instanceof vscode.Uri) {
+      return raw;
     }
-    return undefined;
+    // 跨 Extension Host 邊界不保證是 `vscode.Uri`，用解析出的位置重建（只為 file scheme 負責）
+    return vscode.Uri.file(location.fsPath);
+  }
+
+  /**
+   * VS Code 1.144.0 實測：custom editor（圖片等）分頁的 `Tab.input` 在 Extension Host 端是
+   * **`undefined`**（連物件都沒有）；同樣的程式在 VSCodium 1.140.0 收到 `{ uri, viewType }`。
+   * 這種情況下本產品無法得知被開啟的檔案，只能不追蹤——但要留下**一次**警告，
+   * 否則使用者只會覺得「剛開過的圖片不見了」，排查時日誌完全沒有線索。
+   */
+  private warnOpaqueTabInput(tab: vscode.Tab, input: unknown): void {
+    if (this.opaqueTabInputWarned) return;
+    if (!isOpaqueTabInput(input)) return;
+    this.opaqueTabInputWarned = true;
+    logWarn(
+      `Tab input carries no uri (tab: "${tab.label}"): this VS Code build does not expose custom-editor inputs to extensions, so image/binary tabs are not tracked.`
+    );
   }
 
   /** 檢查特定檔案是否仍於任一分頁群組中開啟 */
