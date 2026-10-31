@@ -66,7 +66,10 @@ export async function migrateLegacyGroupBySettings(): Promise<'none' | 'migrated
         'groupBy'
       );
       if (writeResult === 'timeout') {
-        logWarn('Writing "groupBy" did not complete; settings may be locked by policy.');
+        // **不可繼續清除舊鍵**：`groupBy` 沒寫成功就把舊旗標刪掉，等於直接丟掉使用者的分組意圖。
+        // 寧可留下舊鍵（VS Code 會標成未知設定）也不能讓設定變成「兩邊都沒有」。
+        logWarn('Writing "groupBy" did not complete; the legacy setting was left in place.');
+        return 'failed';
       }
     }
     if (decision.removeLegacy) {
