@@ -51,7 +51,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
   // `feat.legacy-flag`／B-08：0.4.0 起不再宣告 `groupByDirectory`，殘留值會被 VS Code
   // 視為未知設定。啟用時做一次性清理（並在必要時把意圖翻譯成 `groupBy`）。
-  if (await migrateLegacyGroupBySettings()) {
+  const legacyMigration = await migrateLegacyGroupBySettings();
+  if (legacyMigration === 'migrated') {
     logInfo('Removed the legacy "groupByDirectory" setting (superseded by "groupBy").');
   }
 

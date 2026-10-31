@@ -5,7 +5,7 @@ All notable changes to the "code-colorful-recent-files" extension will be docume
 ## [0.4.0] - 2026-11-01
 
 ### Removed
-- **The legacy `codeColorfulRecentFiles.groupByDirectory` setting is gone.** It was superseded by `groupBy` and is now removed outright instead of being deprecated. On activation the extension translates any leftover value into `groupBy` (only when `groupBy` is unset) and deletes the stale key from your global and workspace settings, so VS Code does not flag it as an unknown setting. Use `groupBy` (`none` / `directory` / `type`).
+- **The legacy `codeColorfulRecentFiles.groupByDirectory` setting is gone.** It was superseded by `groupBy` and is now removed outright instead of being deprecated. On activation the extension translates any leftover value into `groupBy` (only when `groupBy` is unset) and deletes the stale key from your global, workspace and per-folder settings, so VS Code does not flag it as an unknown setting. The translated value is written to your user settings — the same place the grouping menu writes to — so a flag that was previously set per workspace or per folder becomes a user-wide preference. If a settings scope is read-only (for example managed by policy), the cleanup is skipped for that scope and the extension still activates normally. Use `groupBy` (`none` / `directory` / `type`).
 
   **BREAKING CHANGE:** if you scripted the old boolean key, switch to `groupBy`. Setups that only ever used `groupBy` are unaffected.
 
