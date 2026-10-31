@@ -46,7 +46,11 @@ export async function setGroupBy(value: GroupByMode): Promise<void> {
 export async function migrateLegacyGroupBySettings(): Promise<'none' | 'migrated' | 'failed'> {
   try {
     const scopes = collectConfigScopes();
-    const legacyValue = firstDefined(scopes.map((scope) => scope.config.get<unknown>(LEGACY_GROUP_BY_DIRECTORY_KEY)));
+    // 各 scope 的**有效值**（已含繼承）：只要有任何一個 scope 看到 true，就代表使用者要目錄分組。
+    // 用 `firstDefined()` 挑第一個會踩到「Global false ＋ folder true」→ 選到 false、
+    // 不寫 groupBy 卻仍清掉所有舊鍵，把較具體 scope 的意圖刪掉（round 3 review R3-2）。
+    const legacyValues = scopes.map((scope) => scope.config.get<unknown>(LEGACY_GROUP_BY_DIRECTORY_KEY));
+    const legacyValue = legacyValues.includes(true) ? true : firstDefined(legacyValues);
     const explicitGroupBy = firstDefined(
       scopes.map((scope) => {
         const inspected = scope.config.inspect<unknown>('groupBy');
