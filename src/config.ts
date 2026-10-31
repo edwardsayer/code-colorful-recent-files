@@ -69,17 +69,27 @@ export async function migrateLegacyGroupBySettings(): Promise<'none' | 'migrated
 }
 
 async function removeLegacyGroupByKey(config: vscode.WorkspaceConfiguration): Promise<void> {
-  const targets = [
-    vscode.ConfigurationTarget.Global,
-    vscode.ConfigurationTarget.Workspace,
-    vscode.ConfigurationTarget.WorkspaceFolder,
-  ];
-  for (const target of targets) {
+  for (const target of [vscode.ConfigurationTarget.Global, vscode.ConfigurationTarget.Workspace]) {
     try {
       await config.update(LEGACY_GROUP_BY_DIRECTORY_KEY, undefined, target);
     } catch (error) {
-      // 單一層失敗（唯讀、policy 控管、不支援 folder scope）不影響其他層與啟用流程
+      // 單一層失敗（唯讀、policy 控管）不影響其他層與啟用流程
       logWarn(`Could not clear the legacy "groupByDirectory" setting at target ${target}.`, error);
+    }
+  }
+  // Folder 層需要 resource：單一資料夾工作區就是 `.vscode/settings.json`（已由 Workspace 覆蓋），
+  // 直接對 WorkspaceFolder 寫入會失敗並留下無意義的警告，因此只在多根工作區逐資料夾處理。
+  const folders = vscode.workspace.workspaceFolders ?? [];
+  if (folders.length <= 1) {
+    return;
+  }
+  for (const folder of folders) {
+    try {
+      await vscode.workspace
+        .getConfiguration(SECTION, folder.uri)
+        .update(LEGACY_GROUP_BY_DIRECTORY_KEY, undefined, vscode.ConfigurationTarget.WorkspaceFolder);
+    } catch (error) {
+      logWarn(`Could not clear the legacy "groupByDirectory" setting for folder ${folder.name}.`, error);
     }
   }
 }
