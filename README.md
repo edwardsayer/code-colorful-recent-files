@@ -120,7 +120,7 @@ All commands live in the `Recent Files` category. The tables below summarize the
 
 **Right-click on a file (history mode)**
 
-`Open to the Side` · `Remove from History` · `Reveal in Explorer` · `Reveal in OS` · `Copy Path` · `Copy Relative Path`
+`Open to the Side` · `Rename` · `Move To…` · `Delete` · `Undo File Operation` · `Remove from History` · `Reveal in Explorer` · `Reveal in OS` · `Copy Path` · `Copy Relative Path`
 
 **Group row inline button**
 
@@ -130,10 +130,22 @@ All commands live in the `Recent Files` category. The tables below summarize the
 
 `Close Tabs in Group` (Sync mode) · `Remove Group from History` (history mode) · `Open in Terminal` · `Find in Folder` · `Reveal in Explorer` · `Copy Path`
 
+## Keyboard shortcuts
+
+Three of the file operations are also reachable from the keyboard, but only while the **Recent Files** view has focus (`Move To…` has no shortcut and stays in the context menu):
+
+| Shortcut | Command | Notes |
+| :--- | :--- | :--- |
+| `F2` | `Rename` | Requires a selected file row. |
+| `Delete` | `Delete` | Honours `explorer.confirmDelete` and `files.enableTrash`. |
+| `Ctrl` + `Z` | `Undo File Operation` | Needs no selection: it reverts the last rename or move of the session. On macOS the binding is `Cmd` + `Z`. |
+
+These bindings are scoped to this view, so `F2`, `Delete` and `Ctrl` + `Z` keep their usual meaning in the editor, in the built-in Explorer and everywhere else. They are unavailable in untrusted workspaces, and `F2`/`Delete` do nothing on group rows because folder and type groups have no file to modify.
+
 ## Requirements and limitations
 
 - Requires VS Code **1.85.0** or newer; desktop only (virtual workspaces are not supported).
-- Works in untrusted workspaces: the extension only reads and writes extension state and never executes workspace code.
+- In untrusted workspaces the extension still reads and displays recent files, but the commands that modify files (rename, move to, delete, undo) are unavailable until the workspace is trusted.
 - Dragging **into** the built-in File Explorer is not possible for any extension (see above).
 
 ## License

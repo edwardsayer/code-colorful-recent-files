@@ -120,7 +120,7 @@
 
 **檔案右鍵（歷史模式）**
 
-`Open to the Side` · `Remove from History` · `Reveal in Explorer` · `Reveal in OS` · `Copy Path` · `Copy Relative Path`
+`Open to the Side` · `Rename` · `Move To…` · `Delete` · `Undo File Operation` · `Remove from History` · `Reveal in Explorer` · `Reveal in OS` · `Copy Path` · `Copy Relative Path`
 
 **分組列 inline 按鈕**
 
@@ -130,10 +130,22 @@
 
 `Close Tabs in Group`（Sync 模式） · `Remove Group from History`（歷史模式） · `Open in Terminal` · `Find in Folder` · `Reveal in Explorer` · `Copy Path`
 
+## 快捷鍵
+
+其中三個檔案操作可用鍵盤觸發（`Move To…` 沒有快捷鍵，仍在右鍵選單），但只在 **Recent Files** 檢視取得焦點時有效：
+
+| 快捷鍵 | 命令 | 說明 |
+| :--- | :--- | :--- |
+| `F2` | `Rename` | 需先選取檔案列。 |
+| `Delete` | `Delete` | 遵循 `explorer.confirmDelete` 與 `files.enableTrash`。 |
+| `Ctrl` + `Z` | `Undo File Operation` | 不需選取節點：復原本 session 最後一次 rename 或 move。macOS 上繫結為 `Cmd` + `Z`。 |
+
+這些繫結只作用於本檢視，因此在編輯器、原生 Explorer 及其他位置，`F2`、`Delete`、`Ctrl` + `Z` 仍維持原有行為。未受信任的工作區不提供這些快捷鍵；在分組列上 `F2`／`Delete` 不會有動作，因為資料夾／類型分組沒有可修改的檔案。
+
 ## 系統需求與限制
 
 - 需要 VS Code **1.85.0** 以上；僅支援桌面版（不支援虛擬工作區）。
-- 可在未受信任的工作區運作：本套件只讀寫擴充套件狀態，不執行工作區程式碼。
+- 未受信任的工作區仍可讀取並顯示最近檔案，但會修改檔案的命令（rename／move to／delete／undo）在信任工作區前無法使用。
 - 任何擴充套件都**無法**把檔案拖**進**原生 File Explorer（原因見上）。
 
 ## 授權
