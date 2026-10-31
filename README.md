@@ -142,6 +142,8 @@ Three of the file operations are also reachable from the keyboard, but only whil
 
 These bindings are scoped to this view, so `F2`, `Delete` and `Ctrl` + `Z` keep their usual meaning in the editor, in the built-in Explorer and everywhere else. They are unavailable in untrusted workspaces, and `F2`/`Delete` do nothing on group rows because folder and type groups have no file to modify.
 
+Clicking a row opens the file in a **preview** tab but leaves the keyboard focus in the list, so `F2`, `Delete` or `Ctrl` + `Z` work right after a click — the same way the built-in File Explorer behaves.
+
 ## Requirements and limitations
 
 - Requires VS Code **1.85.0** or newer; desktop only (virtual workspaces are not supported).

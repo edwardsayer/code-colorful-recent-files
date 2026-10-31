@@ -211,11 +211,17 @@ export function activate(context: vscode.ExtensionContext): void {
   registerFileOperationCommands(context, manager, treeView, { refresh: () => treeDataProvider.refresh() });
 
   // 註冊指令：開啟檔案 (主動更新時間記錄並將該檔案及所屬資料夾立刻置頂)
+  //
+  // `preserveFocus`／`preview` 為 `feat.row-focus` 的產品行為：單擊列要像原生 Explorer，
+  // 檔案開啟但焦點留在清單，否則 `listFocus` 立即變 false，F2／Delete（需 listFocus 與
+  // `selectedKind == file`）就無法接續觸發。
+  // 不用 `showTextDocument`：本清單也追蹤非文字檔（圖片、PDF 等，由其他編輯器處理），
+  // `vscode.open` 的第二參數同樣接受 `TextDocumentShowOptions`，兩種檔案都能開。
   context.subscriptions.push(
     vscode.commands.registerCommand('codeColorfulRecentFiles.openFile', async (uri: vscode.Uri) => {
       if (uri) {
         await manager.touchFile(uri.fsPath);
-        await vscode.commands.executeCommand('vscode.open', uri);
+        await vscode.commands.executeCommand('vscode.open', uri, { preserveFocus: true, preview: true });
       }
     })
   );
