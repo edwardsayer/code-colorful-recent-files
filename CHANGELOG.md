@@ -6,7 +6,7 @@ All notable changes to the "code-colorful-recent-files" extension will be docume
 
 ### Added
 - **Keyboard shortcuts for the file operations.** With the Recent Files view focused, `F2` renames the selected file, `Delete` deletes it (with the usual confirmation and trash settings) and `Ctrl`+`Z` undoes the last rename or move (`Cmd`+`Z` on macOS). The bindings use a custom `selectedKind` context key instead of `viewItem`, because `viewItem` is always false inside a keybinding `when` clause; `F2`/`Delete` therefore only fire on file rows and never on folder or type groups. The default editor and Explorer shortcuts are unaffected.
-- **Rename, Move To…, Delete and Undo File Operation in the recent files view.** Right-click a file to rename it, move it to another folder, or delete it (to the trash when `files.enableTrash` is on, with the usual `explorer.confirmDelete` prompt). Undo reverts the last rename or move. The history list, the pinned folder order and the `.vscode/colorful-recent-files.json` backup are updated together, so a moved file keeps its timestamp and does not jump to the top.
+- **Rename, Move To…, Delete and Undo File Operation in the recent files view.** Right-click a file to rename it, move it to another folder, or delete it (to the trash when `files.enableTrash` is on, with the usual `explorer.confirmDelete` prompt). Undo reverts the last rename or move. The history list, the pinned folder order and the `.vscode/colorful-recent-files.json` backup are updated together, so the entry follows the file to its new path instead of leaving a stale row behind.
 
   These commands only appear in trusted workspaces. Delete is not undoable; only rename and move are, and the undo history lives in memory for the current session only.
 
