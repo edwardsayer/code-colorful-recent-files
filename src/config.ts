@@ -59,9 +59,15 @@ export async function migrateLegacyGroupBySettings(): Promise<'none' | 'migrated
       return 'none';
     }
     if (decision.groupBy) {
-      await vscode.workspace
-        .getConfiguration(SECTION)
-        .update('groupBy', decision.groupBy, vscode.ConfigurationTarget.Global);
+      const writeResult = await withTimeout(
+        vscode.workspace
+          .getConfiguration(SECTION)
+          .update('groupBy', decision.groupBy, vscode.ConfigurationTarget.Global),
+        'groupBy'
+      );
+      if (writeResult === 'timeout') {
+        logWarn('Writing "groupBy" did not complete; settings may be locked by policy.');
+      }
     }
     if (decision.removeLegacy) {
       const cleared = await removeLegacyGroupByKey(scopes);
@@ -101,12 +107,39 @@ function firstDefined<T>(values: (T | undefined)[]): T | undefined {
   return values.find((value) => value !== undefined);
 }
 
+/**
+ * 設定寫入的等待上限。
+ *
+ * 為什麼需要：使用者設定若被 policy 鎖成唯讀，`config.update()` 會先顯示 VS Code 自己的
+ * 錯誤對話框並**等待使用者關閉**，Promise 可能長期不 settle（實測 55 秒仍未回來）。
+ * 遷移是背景清理，不能因此永遠沒有結論，所以用 timeout 收斂：超過就記錄「未完成」並停手，
+ * 對話框本身仍由使用者的 VS Code 處理（我們無法關閉它）。
+ */
+const SETTINGS_WRITE_TIMEOUT_MS = 5000;
+
+async function withTimeout<T>(promise: Thenable<T>, label: string): Promise<T | 'timeout'> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<'timeout'>((resolve) => {
+    timer = setTimeout(() => resolve('timeout'), SETTINGS_WRITE_TIMEOUT_MS);
+  });
+  try {
+    return await Promise.race([promise, timeout]);
+  } finally {
+    if (timer) clearTimeout(timer);
+    void label;
+  }
+}
+
 async function removeLegacyGroupByKey(scopes: ConfigScope[]): Promise<boolean> {
   const base = scopes[0].config;
   let cleared = false;
   for (const target of [vscode.ConfigurationTarget.Global, vscode.ConfigurationTarget.Workspace]) {
     try {
-      await base.update(LEGACY_GROUP_BY_DIRECTORY_KEY, undefined, target);
+      const result = await withTimeout(base.update(LEGACY_GROUP_BY_DIRECTORY_KEY, undefined, target), `clear@${target}`);
+      if (result === 'timeout') {
+        logWarn(`Clearing the legacy "groupByDirectory" setting at target ${target} did not complete (settings may be locked by policy).`);
+        return cleared;
+      }
       cleared = true;
     } catch (error) {
       // 唯讀設定時 VS Code 會先自己跳錯誤對話框並等待（實測每次約 12 秒），
@@ -123,11 +156,14 @@ async function removeLegacyGroupByKey(scopes: ConfigScope[]): Promise<boolean> {
   }
   for (const scope of folderScopes) {
     try {
-      await scope.config.update(
-        LEGACY_GROUP_BY_DIRECTORY_KEY,
-        undefined,
-        vscode.ConfigurationTarget.WorkspaceFolder
+      const result = await withTimeout(
+        scope.config.update(LEGACY_GROUP_BY_DIRECTORY_KEY, undefined, vscode.ConfigurationTarget.WorkspaceFolder),
+        `clear-folder@${scope.folderName}`
       );
+      if (result === 'timeout') {
+        logWarn(`Clearing the legacy "groupByDirectory" setting for folder ${scope.folderName} did not complete.`);
+        return cleared;
+      }
       cleared = true;
     } catch (error) {
       logWarn(`Could not clear the legacy "groupByDirectory" setting for folder ${scope.folderName}.`, error);
