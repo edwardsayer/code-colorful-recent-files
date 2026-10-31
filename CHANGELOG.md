@@ -2,7 +2,7 @@
 
 All notable changes to the "code-colorful-recent-files" extension will be documented in this file.
 
-## [Unreleased]
+## [0.3.3] - 2026-10-31
 
 ### Added
 - **Keyboard shortcuts for the file operations.** With the Recent Files view focused, `F2` renames the selected file, `Delete` deletes it (with the usual confirmation and trash settings) and `Ctrl`+`Z` undoes the last rename or move (`Cmd`+`Z` on macOS). The bindings use a custom `selectedKind` context key instead of `viewItem`, because `viewItem` is always false inside a keybinding `when` clause; `F2`/`Delete` therefore only fire on file rows and never on folder or type groups. The default editor and Explorer shortcuts are unaffected.
