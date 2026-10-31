@@ -11,7 +11,6 @@
   "configuration.title": "彩色最近檔案",
   "configuration.groupBy.description": "最近檔案分組模式：none (平鋪清單)、directory (依目錄階層分組) 或 type (依大寫副檔名類型分組)。",
   "configuration.syncWithOpenTabs.description": "是否與 VS Code 當前開啟的編輯器分頁 (Open Tabs) 保持同步，可作為垂直分頁 (Vertical Tabs) 使用。",
-  "configuration.groupByDirectory.description": "在樹狀檢視中依上層目錄對最近檔案進行分組 (已由 groupBy 擴充)。",
   "configuration.colorScheme.description": "色彩標記方案：連續彩虹順位色譜（由最新紅平滑運算過渡至最舊紫）或時間間隔階梯分級。",
   "configuration.showColorDotIcon.description": "在最近檔案樹狀檢視中顯示色彩小圓點圖示（預設為關閉，維持顯示原生檔案圖示）。",
   "configuration.styleNativeExplorer.description": "是否將色彩裝飾與右方標注同時套用至 VS Code 原生檔案總管（原生 Explorer）。",

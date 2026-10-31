@@ -78,7 +78,6 @@ The `...` menu in the view title uses two notations:
 | `codeColorfulRecentFiles.styleNativeExplorer` | `boolean` | `false` | Also decorate the built-in Explorer tree and editor tabs (color only, no rank badge). |
 | `codeColorfulRecentFiles.highlightMode` | `string` | `"lastAccess"` | Time metric: `"lastAccess"` (open/focus) or `"lastModified"` (edit/save). |
 | `codeColorfulRecentFiles.maxRecentFiles` | `number` | `50` | Maximum number of files kept in history (5–500). Changes apply immediately. |
-| `codeColorfulRecentFiles.groupByDirectory` | `boolean` | `false` | Legacy directory-grouping flag, superseded by `groupBy`. |
 
 ## Color customization
 

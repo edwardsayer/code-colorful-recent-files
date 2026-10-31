@@ -78,7 +78,6 @@
 | `codeColorfulRecentFiles.styleNativeExplorer` | `boolean` | `false` | 同時裝飾原生 Explorer 樹與編輯器分頁（只有顏色、不含序號 badge）。 |
 | `codeColorfulRecentFiles.highlightMode` | `string` | `"lastAccess"` | 時間基準：`"lastAccess"`（開啟／聚焦）或 `"lastModified"`（編輯／儲存）。 |
 | `codeColorfulRecentFiles.maxRecentFiles` | `number` | `50` | 歷史保留上限（5–500），變更立即生效。 |
-| `codeColorfulRecentFiles.groupByDirectory` | `boolean` | `false` | 舊版目錄分組旗標，已被 `groupBy` 取代。 |
 
 ## 色彩自訂
 

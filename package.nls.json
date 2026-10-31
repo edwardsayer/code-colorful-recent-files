@@ -11,7 +11,6 @@
   "configuration.title": "Colorful Recent Files",
   "configuration.groupBy.description": "Recent files grouping mode: none (flat list), directory (hierarchical directory grouping), or type (uppercase extension groups).",
   "configuration.syncWithOpenTabs.description": "Whether to sync exclusively with currently open editor tabs, serving as a vertical tabs list.",
-  "configuration.groupByDirectory.description": "Group recent files by their parent directories in the treeview (extended by groupBy).",
   "configuration.colorScheme.description": "Color decoration scheme: Continuous rainbow rank spectrum (interpolated smoothly from newest red to oldest purple) or time interval buckets.",
   "configuration.showColorDotIcon.description": "Display colored dot icon instead of the default file icon in the recent files treeview.",
   "configuration.styleNativeExplorer.description": "Apply colorful file decorations and badges to the native VS Code Explorer as well.",

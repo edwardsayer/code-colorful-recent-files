@@ -50,7 +50,6 @@ export interface RecentFileElement {
 /** 擴充套件設定型別 */
 export interface ExtensionConfig {
   groupBy: GroupByMode;
-  groupByDirectory: boolean;       // 向後相容旗標
   maxRecentFiles: number;
   highlightMode: 'lastAccess' | 'lastModified';
   colorScheme: ColorScheme;

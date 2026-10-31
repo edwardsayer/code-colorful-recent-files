@@ -676,11 +676,6 @@
           "default": false,
           "description": "%configuration.syncWithOpenTabs.description%"
         },
-        "codeColorfulRecentFiles.groupByDirectory": {
-          "type": "boolean",
-          "default": false,
-          "description": "%configuration.groupByDirectory.description%"
-        },
         "codeColorfulRecentFiles.colorScheme": {
           "type": "string",
           "enum": [

@@ -3,6 +3,7 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import {
   getExtensionConfig,
+  migrateLegacyGroupBySettings,
   setColorScheme,
   setGroupBy,
   setHighlightMode,
@@ -44,9 +45,15 @@ function resolveHeatTokensReady(context: vscode.ExtensionContext): boolean {
   }
 }
 
-export function activate(context: vscode.ExtensionContext): void {
+export async function activate(context: vscode.ExtensionContext): Promise<void> {
   initLogger(context);
   logInfo('Activating Colorful Recent Files extension...');
+
+  // `feat.legacy-flag`／B-08：0.4.0 起不再宣告 `groupByDirectory`，殘留值會被 VS Code
+  // 視為未知設定。啟用時做一次性清理（並在必要時把意圖翻譯成 `groupBy`）。
+  if (await migrateLegacyGroupBySettings()) {
+    logInfo('Removed the legacy "groupByDirectory" setting (superseded by "groupBy").');
+  }
 
   // VS Code 只在視窗啟動時把已安裝擴充套件的 `contributes.colors` 納入主題 CSS。
   // 若本套件是在本次視窗啟動後才（重新）安裝，heat token 尚未存在於 CSS，

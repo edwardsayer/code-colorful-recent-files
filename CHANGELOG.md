@@ -4,6 +4,11 @@ All notable changes to the "code-colorful-recent-files" extension will be docume
 
 ## [Unreleased]
 
+### Removed
+- **The legacy `codeColorfulRecentFiles.groupByDirectory` setting is gone.** It was superseded by `groupBy` and is now removed outright instead of being deprecated. On activation the extension translates any leftover value into `groupBy` (only when `groupBy` is unset) and deletes the stale key from your global and workspace settings, so VS Code does not flag it as an unknown setting. Use `groupBy` (`none` / `directory` / `type`).
+
+  **BREAKING CHANGE:** if you scripted the old boolean key, switch to `groupBy`. Setups that only ever used `groupBy` are unaffected.
+
 ### Changed
 - **Heat colour levels and folder ordering are clamped and typed honestly.** `getHeatColorId()` now clamps out-of-range levels (negative, fractional, `NaN`, `Infinity`, beyond the palette) instead of returning `undefined`, which would have made `new ThemeColor(undefined)` fail at runtime. `getGroupLatestActivity()` returns `undefined` for a group with no usable timestamp instead of `0`, so "no activity data" is no longer conflated with "1970"; such groups sort after groups that have data, and a genuine epoch timestamp still sorts as data.
 - **Tab input parsing no longer relies on `instanceof`, and image tabs are no longer dropped silently.** On VS Code builds that do not hand `Tab.input` to extensions (observed on 1.144.0, while VSCodium 1.140.0 hands over `{ uri, viewType }`), custom-editor tabs cannot be resolved; the extension now logs a single warning naming the tab instead of quietly ignoring it. Text tabs are unaffected.
