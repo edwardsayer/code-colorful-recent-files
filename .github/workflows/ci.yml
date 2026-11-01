@@ -1,0 +1,102 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    # tag 一律在本地 gate 通過後才打；這裡只做最後一道確認，不建立 Release。
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# 同一分支的新推送取消舊的執行。
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # 快速門檻：不啟動 VS Code，只跑型別、單元測試、建置與 manifest／i18n／打包契約。
+  checks:
+    name: checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm run test:unit
+
+      - name: Build
+        run: npm run build
+
+      - name: Project health, manifest and l10n contract
+        run: npm run check:project
+
+  # 打包衛生：確認 .vsix 不含原始碼、測試、開發目錄與 sourcemap，且 README 圖片改寫為遠端 URL。
+  # 產物只作為 workflow artifact 供人工檢視，**不發布**。
+  package:
+    name: package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Package VSIX
+        run: npm run package:vsix
+
+      - name: Assert packaging hygiene
+        run: |
+          set -euo pipefail
+          VSIX=$(ls colorful-recent-files-*.vsix | head -n 1)
+          echo "VSIX: $VSIX"
+          unzip -l "$VSIX"
+
+          for pattern in '/src/' '/tests/' '/scripts/' '/dev/' '/out/' '\.map$' 'assets/screenshots/'; do
+            if unzip -l "$VSIX" | grep -qE "$pattern"; then
+              echo "::error::packaging hygiene failed: $pattern found in $VSIX"
+              exit 1
+            fi
+          done
+
+          # README 圖片應已被 vsce 改寫成 GitHub raw 絕對網址（VSIX 內不帶圖檔）。
+          if ! unzip -p "$VSIX" extension/readme.md | grep -q 'raw/HEAD/assets/screenshots/'; then
+            echo '::error::README screenshots are not rewritten to remote URLs'
+            exit 1
+          fi
+
+          echo 'packaging hygiene OK'
+
+      - name: Upload VSIX
+        uses: actions/upload-artifact@v4
+        with:
+          name: colorful-recent-files-vsix
+          path: colorful-recent-files-*.vsix
+          retention-days: 7
+
+  # 注意：本 workflow **不建立 GitHub Release，也不發布市集**。
+  # 一個版本只建置一次：gate 受測的那顆 .vsix 就是唯一發布物，
+  # 由本機執行 `vsce publish --packagePath`、`ovsx publish`、`gh release create`（用同一顆）。
+  # 理由：.vsix 是 zip、含檔案時間戳，同源重建必得不同 bytes（見 release-runbook §3.2）；
+  # 若 CI 重建後又拿去發布，等於對外發布 gate 沒驗過的位元組。
+  #
+  # 本產品目前沒有 integration job：repo 內沒有 @vscode/test-electron 測試骨架，
+  # 執行期行為（Extension Development Host、真實按鍵、Workspace Trust）是在 gate 時以
+  # 隔離 profile 手動驗收並留下截圖／日誌（dev/tests/pre-release/<version>/）。
