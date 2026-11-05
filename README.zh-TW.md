@@ -2,6 +2,15 @@
 
 語言： [English](README.md) | **繁體中文** | [简体中文](README.zh-CN.md)
 
+[![Visual Studio Marketplace Version](https://vsmarketplacebadges.dev/version/edwardsayer.colorful-recent-files.svg?style=flat-square)](https://marketplace.visualstudio.com/items?itemName=edwardsayer.colorful-recent-files)
+[![Visual Studio Marketplace Installs](https://vsmarketplacebadges.dev/installs/edwardsayer.colorful-recent-files.svg?style=flat-square)](https://marketplace.visualstudio.com/items?itemName=edwardsayer.colorful-recent-files)
+[![Open VSX Version](https://img.shields.io/open-vsx/v/edwardsayer/colorful-recent-files?style=flat-square&logo=open-vsx&label=Open%20VSX)](https://open-vsx.org/extension/edwardsayer/colorful-recent-files)
+[![Open VSX Downloads](https://img.shields.io/open-vsx/dt/edwardsayer/colorful-recent-files?style=flat-square&logo=open-vsx&label=Open%20VSX%20Downloads)](https://open-vsx.org/extension/edwardsayer/colorful-recent-files)
+[![Release](https://img.shields.io/github/v/tag/edwardsayer/code-colorful-recent-files?style=flat-square&logo=github&label=Release)](https://github.com/edwardsayer/code-colorful-recent-files/releases)
+[![VS Code](https://img.shields.io/badge/VS%20Code-1.85.0%2B-blue?style=flat-square&logo=visualstudiocode)](https://code.visualstudio.com/)
+[![Platform](https://img.shields.io/badge/Platform-Desktop%20only-lightgrey?style=flat-square)](#系統需求與限制)
+[![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
+
 在專屬的 Activity Bar TreeView 中呈現你最近開啟與編輯過的檔案，支援原生時間熱度裝飾、三種分組模式與垂直分頁模式。
 
 <img src="assets/icon.png" alt="Colorful Recent Files 圖示" width="128" />

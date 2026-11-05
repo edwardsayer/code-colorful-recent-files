@@ -2,6 +2,15 @@
 
 Language: **English** | [繁體中文](README.zh-TW.md) | [简体中文](README.zh-CN.md)
 
+[![Visual Studio Marketplace Version](https://vsmarketplacebadges.dev/version/edwardsayer.colorful-recent-files.svg?style=flat-square)](https://marketplace.visualstudio.com/items?itemName=edwardsayer.colorful-recent-files)
+[![Visual Studio Marketplace Installs](https://vsmarketplacebadges.dev/installs/edwardsayer.colorful-recent-files.svg?style=flat-square)](https://marketplace.visualstudio.com/items?itemName=edwardsayer.colorful-recent-files)
+[![Open VSX Version](https://img.shields.io/open-vsx/v/edwardsayer/colorful-recent-files?style=flat-square&logo=open-vsx&label=Open%20VSX)](https://open-vsx.org/extension/edwardsayer/colorful-recent-files)
+[![Open VSX Downloads](https://img.shields.io/open-vsx/dt/edwardsayer/colorful-recent-files?style=flat-square&logo=open-vsx&label=Open%20VSX%20Downloads)](https://open-vsx.org/extension/edwardsayer/colorful-recent-files)
+[![Release](https://img.shields.io/github/v/tag/edwardsayer/code-colorful-recent-files?style=flat-square&logo=github&label=Release)](https://github.com/edwardsayer/code-colorful-recent-files/releases)
+[![VS Code](https://img.shields.io/badge/VS%20Code-1.85.0%2B-blue?style=flat-square&logo=visualstudiocode)](https://code.visualstudio.com/)
+[![Platform](https://img.shields.io/badge/Platform-Desktop%20only-lightgrey?style=flat-square)](#requirements-and-limitations)
+[![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
+
 A focused VS Code extension that presents your recently opened and edited files in a dedicated Activity Bar TreeView, with native time-based heat decoration, three grouping modes, and a vertical-tabs mode.
 
 <img src="assets/icon.png" alt="Colorful Recent Files icon" width="128" />
